@@ -55,6 +55,7 @@
 #include "hal_timer.h"
 #include "hal_drivers.h"
 #include "hal_led.h"
+#include "hal_uart.h"
 
 /* OSAL */
 #include "OSAL.h"
@@ -101,6 +102,20 @@ int main(void)
 
   // Final board initialization
   InitBoard( OB_READY );
+  
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    halUARTCfg_t uartConfig;
+    uartConfig.configured         = TRUE;
+    uartConfig.baudRate           = HAL_UART_BR_115200;
+    uartConfig.flowControl        = FALSE;
+    uartConfig.rx.maxBufSize      = 16;
+    uartConfig.tx.maxBufSize      = 16;
+    //uartConfig.idleTimeout        = 6;
+    uartConfig.intEnable          = FALSE;
+    uartConfig.callBackFunc       = NULL;
+    (void)HalUARTOpen( HAL_UART_PORT_1, &uartConfig );
+    HalUARTWrite ( HAL_UART_PORT_1, "BOOT\n", 5 );
+  #endif
 
   #if defined ( POWER_SAVING )
     osal_pwrmgr_device( PWRMGR_BATTERY );

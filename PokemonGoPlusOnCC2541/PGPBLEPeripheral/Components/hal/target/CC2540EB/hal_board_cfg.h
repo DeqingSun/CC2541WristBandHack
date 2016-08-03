@@ -339,7 +339,7 @@ st( \
 
 /* Set to TRUE enable LCD usage, FALSE disable it */
 #ifndef HAL_LCD
-#define HAL_LCD TRUE
+#define HAL_LCD FALSE
 #endif
 
 /* Set to TRUE enable LED usage, FALSE disable it */
@@ -357,37 +357,21 @@ st( \
 
 /* Set to TRUE enable UART usage, FALSE disable it */
 #ifndef HAL_UART
-#if (defined ZAPP_P1) || (defined ZAPP_P2) || (defined ZTOOL_P1) || (defined ZTOOL_P2)
-#define HAL_UART TRUE
-#else
 #define HAL_UART FALSE
-#endif
 #endif
 
 #if HAL_UART
 // Always prefer to use DMA over ISR.
 #if HAL_DMA
   #ifndef HAL_UART_DMA
-    #if (defined ZAPP_P1) || (defined ZTOOL_P1)
-      #define HAL_UART_DMA  1
-    #elif (defined ZAPP_P2) || (defined ZTOOL_P2)
-      #define HAL_UART_DMA  2
-    #else
-      #define HAL_UART_DMA  1
-    #endif
+    #define HAL_UART_DMA  2   //ON my board I want to use P1.6 and P1.7
   #endif
   #ifndef HAL_UART_ISR
     #define HAL_UART_ISR  0
   #endif
 #else
   #ifndef HAL_UART_ISR
-    #if (defined ZAPP_P1) || (defined ZTOOL_P1)
-      #define HAL_UART_ISR  1
-    #elif (defined ZAPP_P2) || (defined ZTOOL_P2)
-      #define HAL_UART_ISR  2
-    #else
-      #define HAL_UART_ISR  1
-    #endif
+    #define HAL_UART_ISR  2
   #endif
   #ifndef HAL_UART_DMA
     #define HAL_UART_DMA  0

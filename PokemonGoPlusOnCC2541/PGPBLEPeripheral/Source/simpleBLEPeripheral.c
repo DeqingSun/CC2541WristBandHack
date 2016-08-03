@@ -58,7 +58,7 @@
 #include "hal_adc.h"
 #include "hal_led.h"
 #include "hal_key.h"
-#include "hal_lcd.h"
+#include "hal_uart.h"
 
 #include "gatt.h"
 
@@ -354,8 +354,18 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   //HalLedSet( (HAL_LED_2_BLUE ), HAL_LED_MODE_ON );
   HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_ON );
   
-  
   RegisterForKeys( simpleBLEPeripheral_TaskID );
+  
+  P0SEL = 0; // Configure Port 0 as GPIO
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    P1SEL = 0|BV(6)|BV(7); // Configure Port 1 as GPIO , P1.6,P1.7 as UART 
+  #else
+    P1SEL = 0;
+  #endif
+  
+  //But if DMA_PM=1 (When power saving), CTS is used. On test board there is a jumper
+  P2SEL = 0|(0x40); // Configure Port 2 as GPIO, Give USART1 Priority
+  
 /*
 #if defined( CC2540_MINIDK )
 
@@ -532,6 +542,9 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
 
   if ( keys & HAL_PUSH_BUTTON )
   {
+    #if (defined HAL_UART) && (HAL_UART == TRUE)
+      HalUARTWrite ( HAL_UART_PORT_1, "KEY down\n", 9 );
+    #endif
     //SK_Keys |= SK_KEY_LEFT;
     HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_TOGGLE );
   }

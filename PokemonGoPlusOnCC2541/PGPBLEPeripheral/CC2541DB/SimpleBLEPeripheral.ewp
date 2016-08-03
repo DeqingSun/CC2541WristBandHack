@@ -303,6 +303,7 @@
           <state>HAL_LCD=FALSE</state>
           <state>HAL_LED=TRUE</state>
           <state>HAL_KEY=TRUE</state>
+          <state>HAL_UART=TRUE</state>
         </option>
         <option>
           <name>CCPreprocFile</name>

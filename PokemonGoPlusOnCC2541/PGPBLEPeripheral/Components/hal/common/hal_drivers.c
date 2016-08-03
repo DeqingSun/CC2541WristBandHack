@@ -67,9 +67,6 @@
 #include "hal_timer.h"
 #include "hal_types.h"
 #include "hal_uart.h"
-#ifdef CC2591_COMPRESSION_WORKAROUND
-#include "mac_rx.h"
-#endif
 #include "OSAL.h"
 #if defined POWER_SAVING
 #include "OSAL_PwrMgr.h"
@@ -102,9 +99,6 @@ void Hal_Init( uint8 task_id )
   /* Register task ID */
   Hal_TaskID = task_id;
 
-#ifdef CC2591_COMPRESSION_WORKAROUND
-  osal_start_reload_timer( Hal_TaskID, PERIOD_RSSI_RESET_EVT, PERIOD_RSSI_RESET_TIMEOUT );
-#endif
 }
 
 /**************************************************************************************************
@@ -206,14 +200,6 @@ uint16 Hal_ProcessEvent( uint8 task_id, uint16 events )
   {
     HalBuzzerStop();
     return events ^ HAL_BUZZER_EVENT;
-  }
-#endif
-
-#ifdef CC2591_COMPRESSION_WORKAROUND
-  if ( events & PERIOD_RSSI_RESET_EVT )
-  {
-    macRxResetRssi();
-    return (events ^ PERIOD_RSSI_RESET_EVT);
   }
 #endif
 
