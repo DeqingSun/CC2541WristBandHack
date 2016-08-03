@@ -60,6 +60,12 @@
 #include "hal_key.h"
 #include "hal_uart.h"
 
+#if (defined HAL_UART) && (HAL_UART == TRUE)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 #include "gatt.h"
 
 #include "hci.h"
@@ -366,6 +372,10 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   //But if DMA_PM=1 (When power saving), CTS is used. On test board there is a jumper
   P2SEL = 0|(0x40); // Configure Port 2 as GPIO, Give USART1 Priority
   
+  
+  //debug
+  P0DIR|=BV(6)|BV(5)|BV(4);
+  
 /*
 #if defined( CC2540_MINIDK )
 
@@ -536,18 +546,36 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
  */
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
 {
-  //uint8 SK_Keys = 0;
+  static uint8 handleKeysSavedKeys=0;
+  static uint32 keyDownTime=0;
 
   VOID shift;  // Intentionally unreferenced parameter
 
-  if ( keys & HAL_PUSH_BUTTON )
-  {
-    #if (defined HAL_UART) && (HAL_UART == TRUE)
-      HalUARTWrite ( HAL_UART_PORT_1, "KEY down\n", 9 );
-    #endif
-    //SK_Keys |= SK_KEY_LEFT;
-    HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_TOGGLE );
+  if ((keys & HAL_PUSH_BUTTON)!=(handleKeysSavedKeys & HAL_PUSH_BUTTON)){
+    if ( keys & HAL_PUSH_BUTTON ){
+      keyDownTime = osal_GetSystemClock();
+      #if (defined HAL_UART) && (HAL_UART == TRUE)
+        HalUARTWrite ( HAL_UART_PORT_1, "KEY down\n", 9 );
+      #endif
+
+      HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_ON );
+    }else{
+      uint16 keyPressDuration=osal_GetSystemClock()-keyDownTime;
+      #if (defined HAL_UART) && (HAL_UART == TRUE)
+        HalUARTWrite ( HAL_UART_PORT_1, "KEY UP\n", 7 );
+        {
+          char buf[16];
+          sprintf(buf,"%d\n",keyPressDuration);
+          uint8 strLength=strlen(buf);
+          HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+        }
+      #endif
+      HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_OFF );
+    }
   }
+  
+  
+  handleKeysSavedKeys=keys;
 /*
   if ( keys & HAL_KEY_SW_2 )
   {

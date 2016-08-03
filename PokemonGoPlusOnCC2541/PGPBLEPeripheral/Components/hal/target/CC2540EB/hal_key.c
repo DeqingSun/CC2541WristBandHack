@@ -256,6 +256,7 @@ uint8 HalKeyRead ( void )
  **************************************************************************************************/
 void HalKeyPoll (void)
 {
+  //this is called every 100ms when key is pressed
   uint8 keys = 0;
   uint8 notify = 0;
   
