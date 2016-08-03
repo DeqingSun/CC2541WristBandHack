@@ -118,15 +118,7 @@ extern "C"
 /* S1 */
 #define PUSH1_BV                       BV(1)
 #define PUSH1_SBIT                     P0_1
-
-
 #define PUSH1_POLARITY               ACTIVE_LOW
-
-
-/* Joystick Center Press */
-#define PUSH2_BV                       BV(0)
-#define PUSH2_SBIT                     P2_0
-#define PUSH2_POLARITY                 ACTIVE_HIGH
 
 /* OSAL NV implemented by internal flash pages. */
 
@@ -248,7 +240,7 @@ It is meant to be used by TI only */
 
 /* ----------- Push Buttons ---------- */
 #define HAL_PUSH_BUTTON1()        (PUSH1_POLARITY (PUSH1_SBIT))
-#define HAL_PUSH_BUTTON2()        (PUSH2_POLARITY (PUSH2_SBIT))
+#define HAL_PUSH_BUTTON2()        (0)
 #define HAL_PUSH_BUTTON3()        (0)
 #define HAL_PUSH_BUTTON4()        (0)
 #define HAL_PUSH_BUTTON5()        (0)

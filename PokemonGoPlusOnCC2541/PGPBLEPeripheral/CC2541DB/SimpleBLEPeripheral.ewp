@@ -5999,19 +5999,6 @@
     <file>
       <name>$PROJ_DIR$\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
     </file>
-    <file>
-      <name>$PROJ_DIR$\..\Profiles\Keys\CC254x\simplekeys.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Profiles\Keys\simplekeys.h</name>
-      <excluded>
-        <configuration>CC2541</configuration>
-        <configuration>CC2541-OAD-ImgA</configuration>
-        <configuration>CC2541-OAD-ImgB</configuration>
-        <configuration>CC2541-OAD-Encrypted-ImgA</configuration>
-        <configuration>CC2541-OAD-Encrypted-ImgB</configuration>
-      </excluded>
-    </file>
   </group>
   <group>
     <name>TOOLS</name>

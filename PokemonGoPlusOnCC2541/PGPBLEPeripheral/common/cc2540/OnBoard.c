@@ -260,32 +260,12 @@ void OnBoard_KeyCallback ( uint8 keys, uint8 state )
 
   // shift key (S1) is used to generate key interrupt
   // applications should not use S1 when key interrupt is enabled
-  shift = (OnboardKeyIntEnable == HAL_KEY_INTERRUPT_ENABLE) ? false : ((keys & HAL_KEY_SW_6) ? true : false);
+  shift = (OnboardKeyIntEnable == HAL_KEY_INTERRUPT_ENABLE) ? false : ((keys & 0) ? true : false);
 
   if ( OnBoard_SendKeys( keys, shift ) != SUCCESS )
   {
     // Process SW1 here
-    if ( keys & HAL_KEY_SW_1 )  // Switch 1
-    {
-    }
-    // Process SW2 here
-    if ( keys & HAL_KEY_SW_2 )  // Switch 2
-    {
-    }
-    // Process SW3 here
-    if ( keys & HAL_KEY_SW_3 )  // Switch 3
-    {
-    }
-    // Process SW4 here
-    if ( keys & HAL_KEY_SW_4 )  // Switch 4
-    {
-    }
-    // Process SW5 here
-    if ( keys & HAL_KEY_SW_5 )  // Switch 5
-    {
-    }
-    // Process SW6 here
-    if ( keys & HAL_KEY_SW_6 )  // Switch 6
+    if ( keys & HAL_PUSH_BUTTON )  // Switch 1
     {
     }
   }

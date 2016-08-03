@@ -69,10 +69,6 @@
 #include "devinfoservice.h"
 #include "simpleGATTprofile.h"
 
-#if defined( CC2540_MINIDK )
-  #include "simplekeys.h"
-#endif
-
 #include "peripheral.h"
 
 #include "gapbondmgr.h"
@@ -160,27 +156,13 @@ static gaprole_States_t gapProfileState = GAPROLE_INIT;
 static uint8 scanRspData[] =
 {
   // complete name
-  0x14,   // length of this data
+  0x06,   // length of this data
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  0x53,   // 'S'
-  0x69,   // 'i'
-  0x6d,   // 'm'
-  0x70,   // 'p'
-  0x6c,   // 'l'
-  0x65,   // 'e'
-  0x42,   // 'B'
-  0x4c,   // 'L'
   0x45,   // 'E'
-  0x50,   // 'P'
-  0x65,   // 'e'
-  0x72,   // 'r'
-  0x69,   // 'i'
-  0x70,   // 'p'
-  0x68,   // 'h'
-  0x65,   // 'e'
-  0x72,   // 'r'
-  0x61,   // 'a'
-  0x6c,   // 'l'
+  0x42,   // 'B'
+  0x49,   // 'I'
+  0x53,   // 'S'
+  0x55,   // 'U'
 
   // connection interval range
   0x05,   // length of this data
@@ -227,14 +209,7 @@ static void simpleBLEPeripheral_ProcessGATTMsg( gattMsgEvent_t *pMsg );
 static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
 static void simpleProfileChangeCB( uint8 paramID );
-
-#if defined( CC2540_MINIDK )
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
-#endif
-
-#if (defined HAL_LCD) && (HAL_LCD == TRUE)
-//static char *bdAddr2Str ( uint8 *pAddr );
-#endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
 
 
 
@@ -377,6 +352,10 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   
   HalLedSet( (HAL_LED_1_RED ), HAL_LED_MODE_ON );
   //HalLedSet( (HAL_LED_2_BLUE ), HAL_LED_MODE_ON );
+  HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_ON );
+  
+  
+  RegisterForKeys( simpleBLEPeripheral_TaskID );
 /*
 #if defined( CC2540_MINIDK )
 
@@ -430,13 +409,6 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   // This reduces active current while radio is active and CC254x MCU
   // is halted
   HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_ENABLE_CLK_DIVIDE_ON_HALT );
-
-#if defined ( DC_DC_P0_7 )
-
-  // Enable stack to toggle bypass control on TPS62730 (DC/DC converter)
-  HCI_EXT_MapPmIoPortCmd( HCI_EXT_PM_IO_PORT_P0, HCI_EXT_PM_IO_PORT_PIN7 );
-
-#endif // defined ( DC_DC_P0_7 )
 
   // Setup a delayed profile startup
   osal_set_event( simpleBLEPeripheral_TaskID, SBP_START_DEVICE_EVT );
@@ -522,12 +494,11 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
 {
   switch ( pMsg->event )
   {     
-  #if defined( CC2540_MINIDK )
+
     case KEY_CHANGE:
       simpleBLEPeripheral_HandleKeys( ((keyChange_t *)pMsg)->state, 
                                       ((keyChange_t *)pMsg)->keys );
       break;
-  #endif // #if defined( CC2540_MINIDK )
  
     case GATT_MSG_EVENT:
       // Process GATT message
@@ -540,7 +511,7 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
   }
 }
 
-#if defined( CC2540_MINIDK )
+
 /*********************************************************************
  * @fn      simpleBLEPeripheral_HandleKeys
  *
@@ -555,15 +526,16 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
  */
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
 {
-  uint8 SK_Keys = 0;
+  //uint8 SK_Keys = 0;
 
   VOID shift;  // Intentionally unreferenced parameter
 
-  if ( keys & HAL_KEY_SW_1 )
+  if ( keys & HAL_PUSH_BUTTON )
   {
-    SK_Keys |= SK_KEY_LEFT;
+    //SK_Keys |= SK_KEY_LEFT;
+    HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_TOGGLE );
   }
-
+/*
   if ( keys & HAL_KEY_SW_2 )
   {
 
@@ -598,12 +570,12 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
     }
 #endif // PLUS_BROADCASTER
   }
-
+*/
   // Set the value of the keys state to the Simple Keys Profile;
   // This will send out a notification of the keys state if enabled
-  SK_SetParameter( SK_KEY_ATTR, sizeof ( uint8 ), &SK_Keys );
+  //SK_SetParameter( SK_KEY_ATTR, sizeof ( uint8 ), &SK_Keys );
 }
-#endif // #if defined( CC2540_MINIDK )
+
 
 /*********************************************************************
  * @fn      simpleBLEPeripheral_ProcessGATTMsg
