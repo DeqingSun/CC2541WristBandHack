@@ -5994,10 +5994,10 @@
       </excluded>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pokemongoplus.c</name>
+      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pgpDeviceControl.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pokemongoplus.h</name>
+      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pgpDeviceControl.h</name>
     </file>
   </group>
   <group>

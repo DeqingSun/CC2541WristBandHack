@@ -60,7 +60,7 @@
 #include "gattservapp.h"
 #include "gapbondmgr.h"
 
-#include "pokemongoplus.h"
+#include "pgpDeviceControl.h"
 
 /*********************************************************************
  * MACROS

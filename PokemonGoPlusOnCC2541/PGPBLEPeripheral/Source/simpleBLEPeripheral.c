@@ -73,7 +73,7 @@
 #include "gapgattserver.h"
 #include "gattservapp.h"
 #include "devinfoservice.h"
-#include "pokemongoplus.h"
+#include "pgpDeviceControl.h"
 
 #include "peripheral.h"
 
