@@ -161,14 +161,10 @@ static gaprole_States_t gapProfileState = GAPROLE_INIT;
 // GAP - SCAN RSP data (max size = 31 bytes)
 static uint8 scanRspData[] =
 {
-  // complete name
-  0x06,   // length of this data
+  // complete name ,Pokemon GO Plus
+  0x10,   // length of this data
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  0x45,   // 'E'
-  0x42,   // 'B'
-  0x49,   // 'I'
-  0x53,   // 'S'
-  0x55,   // 'U'
+  0x50, 0x6F, 0x6B, 0x65, 0x6D, 0x6F, 0x6E, 0x20, 0x47, 0x4F, 0x20, 0x50, 0x6C, 0x75, 0x73,
 
   // connection interval range
   0x05,   // length of this data
@@ -199,13 +195,13 @@ static uint8 advertData[] =
   // in this peripheral
   0x03,   // length of this data
   GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
-  LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
-  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),
+  LO_UINT16( DEVICE_CONTROL_SERV_UUID ), //need to update
+  HI_UINT16( DEVICE_CONTROL_SERV_UUID ),
 
 };
 
 // GAP GATT Attributes
-static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "Simple BLE Peripheral";
+static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "Pokemon GO Plus";
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -214,7 +210,7 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg );
 static void simpleBLEPeripheral_ProcessGATTMsg( gattMsgEvent_t *pMsg );
 static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
-static void simpleProfileChangeCB( uint8 paramID );
+static void pgpDeviceControlChangeCB( uint8 paramID );
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
 
 
@@ -238,9 +234,9 @@ static gapBondCBs_t simpleBLEPeripheral_BondMgrCBs =
 };
 
 // Simple GATT Profile Callbacks
-static simpleProfileCBs_t simpleBLEPeripheral_SimpleProfileCBs =
+static pgpDeviceControlCBs_t simpleBLEPeripheral_PgpDeviceControlCBs =
 {
-  simpleProfileChangeCB    // Charactersitic value change callback
+  pgpDeviceControlChangeCB    // Charactersitic value change callback
 };
 /*********************************************************************
  * PUBLIC FUNCTIONS
@@ -333,23 +329,21 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   GGS_AddService( GATT_ALL_SERVICES );            // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
   DevInfo_AddService();                           // Device Information Service
-  SimpleProfile_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
+  PgpDeviceControl_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
 #if defined FEATURE_OAD
   VOID OADTarget_AddService();                    // OAD Profile
 #endif
 
-  // Setup the SimpleProfile Characteristic Values
+  // Setup the PgpDeviceControl Characteristic Values
   {
     uint8 charValue1 = 1;
     uint8 charValue2 = 2;
     uint8 charValue3 = 3;
     uint8 charValue4 = 4;
-    uint8 charValue5[SIMPLEPROFILE_CHAR5_LEN] = { 1, 2, 3, 4, 5 };
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR1, sizeof ( uint8 ), &charValue1 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR2, sizeof ( uint8 ), &charValue2 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR3, sizeof ( uint8 ), &charValue3 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof ( uint8 ), &charValue4 );
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR5, SIMPLEPROFILE_CHAR5_LEN, charValue5 );
+    PgpDeviceControl_SetParameter( LED_VIBRATE_CTRL_CHAR, sizeof ( uint8 ), &charValue1 );
+    PgpDeviceControl_SetParameter( BUTTON_NOTIF_CHAR, sizeof ( uint8 ), &charValue2 );
+    PgpDeviceControl_SetParameter( FW_UPDATE_REQUEST_CHAR, sizeof ( uint8 ), &charValue3 );
+    PgpDeviceControl_SetParameter( FW_VERSION_CHAR, sizeof ( uint8 ), &charValue4 );
   }
 
   
@@ -377,7 +371,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   P0DIR|=BV(6)|BV(5)|BV(4);
 
   // Register callback with SimpleGATTprofile
-  VOID SimpleProfile_RegisterAppCBs( &simpleBLEPeripheral_SimpleProfileCBs );
+  VOID PgpDeviceControl_RegisterAppCBs( &simpleBLEPeripheral_PgpDeviceControlCBs );
 
   // Enable clock divide on halt
   // This reduces active current while radio is active and CC254x MCU
@@ -522,6 +516,10 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
           sprintf(buf,"%d\n",keyPressDuration);
           uint8 strLength=strlen(buf);
           HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+        }
+        if (keyPressDuration<300){
+          uint8 buttonValue=0x0F;
+          PgpDeviceControl_SetParameter( BUTTON_NOTIF_CHAR, sizeof ( uint8 ), &buttonValue );
         }
       #endif
       HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_OFF );
@@ -775,8 +773,9 @@ static void performPeriodicTask( void )
   uint8 valueToCopy;
   uint8 stat;
 
+  //debug: nothing to do now
   // Call to retrieve the value of the third characteristic in the profile
-  stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
+  //stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
 
   if( stat == SUCCESS )
   {
@@ -786,12 +785,12 @@ static void performPeriodicTask( void )
      * a GATT client device, then a notification will be sent every time this
      * function is called.
      */
-    SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
+    //SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
   }
 }
 
 /*********************************************************************
- * @fn      simpleProfileChangeCB
+ * @fn      pgpDeviceControlChangeCB
  *
  * @brief   Callback from SimpleBLEProfile indicating a value change
  *
@@ -799,27 +798,22 @@ static void performPeriodicTask( void )
  *
  * @return  none
  */
-static void simpleProfileChangeCB( uint8 paramID )
+static void pgpDeviceControlChangeCB( uint8 paramID )
 {
   uint8 newValue;
 
   switch( paramID )
   {
-    case SIMPLEPROFILE_CHAR1:
-      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR1, &newValue );
+    case LED_VIBRATE_CTRL_CHAR:
+      PgpDeviceControl_GetParameter( LED_VIBRATE_CTRL_CHAR, &newValue );
 
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        //HalLcdWriteStringValue( "Char 1:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
 
       break;
 
-    case SIMPLEPROFILE_CHAR3:
-      SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &newValue );
+    case FW_UPDATE_REQUEST_CHAR:
+      PgpDeviceControl_GetParameter( FW_UPDATE_REQUEST_CHAR, &newValue );
 
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        //HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
 
       break;
 
@@ -829,39 +823,6 @@ static void simpleProfileChangeCB( uint8 paramID )
   }
 }
 
-#if (defined HAL_LCD) && (HAL_LCD == TRUE)
-/*********************************************************************
- * @fn      bdAddr2Str
- *
- * @brief   Convert Bluetooth address to string. Only needed when
- *          LCD display is used.
- *
- * @return  none
- */
-/*char *bdAddr2Str( uint8 *pAddr )
-{
-  uint8       i;
-  char        hex[] = "0123456789ABCDEF";
-  static char str[B_ADDR_STR_LEN];
-  char        *pStr = str;
-
-  *pStr++ = '0';
-  *pStr++ = 'x';
-
-  // Start from end of addr
-  pAddr += B_ADDR_LEN;
-
-  for ( i = B_ADDR_LEN; i > 0; i-- )
-  {
-    *pStr++ = hex[*--pAddr >> 4];
-    *pStr++ = hex[*pAddr & 0x0F];
-  }
-
-  *pStr = 0;
-
-  return str;
-}*/
-#endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
 
 /*********************************************************************
 *********************************************************************/

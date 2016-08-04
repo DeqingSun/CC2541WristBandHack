@@ -45,8 +45,8 @@
  Release Date: 2016-06-09 06:57:10
  *****************************************************************************/
 
-#ifndef SIMPLEGATTPROFILE_H
-#define SIMPLEGATTPROFILE_H
+#ifndef PGPDEVICECONTROLPROFILE_H
+#define PGPDEVICECONTROLPROFILE_H
 
 #ifdef __cplusplus
 extern "C"
@@ -61,28 +61,30 @@ extern "C"
  * CONSTANTS
  */
 
-// Profile Parameters
-#define SIMPLEPROFILE_CHAR1                   0  // RW uint8 - Profile Characteristic 1 value 
-#define SIMPLEPROFILE_CHAR2                   1  // RW uint8 - Profile Characteristic 2 value
-#define SIMPLEPROFILE_CHAR3                   2  // RW uint8 - Profile Characteristic 3 value
-#define SIMPLEPROFILE_CHAR4                   3  // RW uint8 - Profile Characteristic 4 value
-#define SIMPLEPROFILE_CHAR5                   4  // RW uint8 - Profile Characteristic 4 value
-  
-// Simple Profile Service UUID
-#define SIMPLEPROFILE_SERV_UUID               0xFFF0
-    
-// Key Pressed UUID
-#define SIMPLEPROFILE_CHAR1_UUID            0xFFF1
-#define SIMPLEPROFILE_CHAR2_UUID            0xFFF2
-#define SIMPLEPROFILE_CHAR3_UUID            0xFFF3
-#define SIMPLEPROFILE_CHAR4_UUID            0xFFF4
-#define SIMPLEPROFILE_CHAR5_UUID            0xFFF5
-  
-// Simple Keys Profile Services bit fields
-#define SIMPLEPROFILE_SERVICE               0x00000001
+//public static final UUID UUID_DEVICE_CONTROL_SERVICE = UUID.fromString("21c50462-67cb-63a3-5c4c-82b5b9939aeb");  
+//public static final UUID UUID_LED_VIBRATE_CTRL_CHAR = UUID.fromString("21c50462-67cb-63a3-5c4c-82b5b9939aec");
+//public static final UUID UUID_BUTTON_NOTIF_CHAR = UUID.fromString("21c50462-67cb-63a3-5c4c-82b5b9939aed");
+//public static final UUID UUID_FW_UPDATE_REQUEST_CHAR = UUID.fromString("21c50462-67cb-63a3-5c4c-82b5b9939aef");
+//public static final UUID UUID_FW_VERSION_CHAR = UUID.fromString("21c50462-67cb-63a3-5c4c-82b5b9939af0");   
 
-// Length of Characteristic 5 in bytes
-#define SIMPLEPROFILE_CHAR5_LEN           5  
+// Profile Parameters
+#define LED_VIBRATE_CTRL_CHAR                 0  //RW? 3 ATTR
+#define BUTTON_NOTIF_CHAR                     1  //N?  4 ATTR
+#define FW_UPDATE_REQUEST_CHAR                2  //RW? 3 ATTR
+#define FW_VERSION_CHAR                       3  //R?  3 ATTR
+    
+// UUID for DEVICE_CONTROL service                          
+#define DEVICE_CONTROL_SERV_UUID                  0x9AEB    
+/* The 16 bit UUID listen above is only a part of the 
+ * full DEVICE CONTROL 128 bit UUID:                       
+ * 21C50462-67CB-63A3-5C4C-82B5B993???? */   
+   
+                                                      
+//  Device Control service characteristic UUID              
+#define LED_VIBRATE_CTRL_CHAR_UUID          0x9AEC    
+#define BUTTON_NOTIF_CHAR_UUID              0x9AED 
+#define FW_UPDATE_REQUEST_CHAR_UUID         0x9AEF 
+#define FW_VERSION_CHAR_UUID                0x9AF0 
 
 /*********************************************************************
  * TYPEDEFS
@@ -92,18 +94,22 @@ extern "C"
 /*********************************************************************
  * MACROS
  */
+   
+// DEVICE_CONTROL_SERVICE Base 128-bit UUID: 21c50462-67cb-63a3-5c4c-82b5b993XXXX
+#define DEVICE_CONTROL_SERVICE_BASE_UUID_128( uuid )  LO_UINT16( uuid ), HI_UINT16( uuid ), 0x93, 0xb9, 0xb5, 0x82, 0x4c, 0x5c, \
+                                  0xa3, 0x63, 0xcb, 0x67, 0x62, 0x04, 0xC5, 0x21
 
 /*********************************************************************
  * Profile Callbacks
  */
 
 // Callback when a characteristic value has changed
-typedef void (*simpleProfileChange_t)( uint8 paramID );
+typedef void (*pgpDeviceControlChange_t)( uint8 paramID );
 
 typedef struct
 {
-  simpleProfileChange_t        pfnSimpleProfileChange;  // Called when characteristic value changes
-} simpleProfileCBs_t;
+  pgpDeviceControlChange_t        pfnPgpDeviceControlChange;  // Called when characteristic value changes
+} pgpDeviceControlCBs_t;
 
     
 
@@ -113,25 +119,25 @@ typedef struct
 
 
 /*
- * SimpleProfile_AddService- Initializes the Simple GATT Profile service by registering
+ * PgpDeviceControl_AddService- Initializes the Simple GATT Profile service by registering
  *          GATT attributes with the GATT server.
  *
  * @param   services - services to add. This is a bit map and can
  *                     contain more than one service.
  */
 
-extern bStatus_t SimpleProfile_AddService( uint32 services );
+extern bStatus_t PgpDeviceControl_AddService( uint32 services );
 
 /*
- * SimpleProfile_RegisterAppCBs - Registers the application callback function.
+ * PgpDeviceControl_RegisterAppCBs - Registers the application callback function.
  *                    Only call this function once.
  *
  *    appCallbacks - pointer to application callbacks.
  */
-extern bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks );
+extern bStatus_t PgpDeviceControl_RegisterAppCBs( pgpDeviceControlCBs_t *appCallbacks );
 
 /*
- * SimpleProfile_SetParameter - Set a Simple GATT Profile parameter.
+ * PgpDeviceControl_SetParameter - Set a Simple GATT Profile parameter.
  *
  *    param - Profile parameter ID
  *    len - length of data to right
@@ -140,10 +146,10 @@ extern bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks 
  *          data type (example: data type of uint16 will be cast to 
  *          uint16 pointer).
  */
-extern bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value );
+extern bStatus_t PgpDeviceControl_SetParameter( uint8 param, uint8 len, void *value );
   
 /*
- * SimpleProfile_GetParameter - Get a Simple GATT Profile parameter.
+ * PgpDeviceControl_GetParameter - Get a Simple GATT Profile parameter.
  *
  *    param - Profile parameter ID
  *    value - pointer to data to write.  This is dependent on
@@ -151,7 +157,7 @@ extern bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value
  *          data type (example: data type of uint16 will be cast to 
  *          uint16 pointer).
  */
-extern bStatus_t SimpleProfile_GetParameter( uint8 param, void *value );
+extern bStatus_t PgpDeviceControl_GetParameter( uint8 param, void *value );
 
 
 /*********************************************************************
@@ -161,4 +167,4 @@ extern bStatus_t SimpleProfile_GetParameter( uint8 param, void *value );
 }
 #endif
 
-#endif /* SIMPLEGATTPROFILE_H */
+#endif /* PGPDEVICECONTROLPROFILE_H */

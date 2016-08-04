@@ -70,7 +70,8 @@
  * CONSTANTS
  */
 
-#define SERVAPP_NUM_ATTR_SUPPORTED        17
+//need to update if RW is updated or more char
+#define SERVAPP_NUM_ATTR_SUPPORTED        14    
 
 /*********************************************************************
  * TYPEDEFS
@@ -79,41 +80,34 @@
 /*********************************************************************
  * GLOBAL VARIABLES
  */
-// Simple GATT Profile Service UUID: 0xFFF0
-CONST uint8 simpleProfileServUUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_SERV_UUID), HI_UINT16(SIMPLEPROFILE_SERV_UUID)
-};
+   
+// Device Control Service UUID: 0x9AEB                      
+CONST uint8 deviceControlServUUID[ATT_UUID_SIZE] =         
+{                                                     
+    DEVICE_CONTROL_SERVICE_BASE_UUID_128(DEVICE_CONTROL_SERV_UUID),             
+};                                                    
+                                                      
+// Led Vibrate Ctrl UUID: 0x9AEC                      
+CONST uint8 ledVibrateCtrlCharUUID[ATT_UUID_SIZE] =        
+{                                                     
+    DEVICE_CONTROL_SERVICE_BASE_UUID_128(LED_VIBRATE_CTRL_CHAR_UUID),            
+};                                                    
+// Button Notif UUID: 0x9AED                      
+CONST uint8 buttonNotifCharUUID[ATT_UUID_SIZE] =        
+{                                                     
+    DEVICE_CONTROL_SERVICE_BASE_UUID_128(BUTTON_NOTIF_CHAR_UUID),            
+};     
+// Fw Update Request UUID: 0x9AEF                      
+CONST uint8 fwUpdateRequestCharUUID[ATT_UUID_SIZE] =        
+{                                                     
+    DEVICE_CONTROL_SERVICE_BASE_UUID_128(FW_UPDATE_REQUEST_CHAR_UUID),            
+};     
+// Fw Version UUID: 0x9AF0                      
+CONST uint8 fwVersionCharUUID[ATT_UUID_SIZE] =        
+{                                                     
+    DEVICE_CONTROL_SERVICE_BASE_UUID_128(FW_VERSION_CHAR_UUID),            
+};        
 
-// Characteristic 1 UUID: 0xFFF1
-CONST uint8 simpleProfilechar1UUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_CHAR1_UUID), HI_UINT16(SIMPLEPROFILE_CHAR1_UUID)
-};
-
-// Characteristic 2 UUID: 0xFFF2
-CONST uint8 simpleProfilechar2UUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_CHAR2_UUID), HI_UINT16(SIMPLEPROFILE_CHAR2_UUID)
-};
-
-// Characteristic 3 UUID: 0xFFF3
-CONST uint8 simpleProfilechar3UUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_CHAR3_UUID), HI_UINT16(SIMPLEPROFILE_CHAR3_UUID)
-};
-
-// Characteristic 4 UUID: 0xFFF4
-CONST uint8 simpleProfilechar4UUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_CHAR4_UUID), HI_UINT16(SIMPLEPROFILE_CHAR4_UUID)
-};
-
-// Characteristic 5 UUID: 0xFFF5
-CONST uint8 simpleProfilechar5UUID[ATT_BT_UUID_SIZE] =
-{ 
-  LO_UINT16(SIMPLEPROFILE_CHAR5_UUID), HI_UINT16(SIMPLEPROFILE_CHAR5_UUID)
-};
 
 /*********************************************************************
  * EXTERNAL VARIABLES
@@ -127,221 +121,188 @@ CONST uint8 simpleProfilechar5UUID[ATT_BT_UUID_SIZE] =
  * LOCAL VARIABLES
  */
 
-static simpleProfileCBs_t *simpleProfile_AppCBs = NULL;
+static pgpDeviceControlCBs_t *pgpDeviceControl_AppCBs = NULL;
 
-/*********************************************************************
- * Profile Attributes - variables
- */
+/*********************************************************************                    
+ * Service Attributes - variables                                                         
+ */                                                                                       
 
-// Simple Profile Service attribute
-static CONST gattAttrType_t simpleProfileService = { ATT_BT_UUID_SIZE, simpleProfileServUUID };
+// Device Control Service attribute                                                             
+static CONST gattAttrType_t pgpDeviceControlService = { ATT_UUID_SIZE, deviceControlServUUID};     
+//-------------------------------------------------------------------
+// Device Control Service Led Vibrate Ctrl Properties                                           
+static uint8 ledVibrateCtrlCharProps = GATT_PROP_READ | GATT_PROP_WRITE;                       
 
+// Led Vibrate Ctrl Value                                                                 
+static uint8 ledVibrateCtrlChar = 0;                                                           
 
-// Simple Profile Characteristic 1 Properties
-static uint8 simpleProfileChar1Props = GATT_PROP_READ | GATT_PROP_WRITE;
+// Device Control Service Led Vibrate Ctrl User Description                                     
+static uint8 ledVibrateCtrlCharUserDesp[] = "Led Vibrate Ctrl\0";        
 
-// Characteristic 1 Value
-static uint8 simpleProfileChar1 = 0;
+//-------------------------------------------------------------------
+// Device Control Service Button Notif Properties                                           
+static uint8 buttonNotifCharProps = GATT_PROP_NOTIFY;                                       
 
-// Simple Profile Characteristic 1 User Description
-static uint8 simpleProfileChar1UserDesp[17] = "Characteristic 1";
+// Button Notif Value                                                                 
+static uint8 buttonNotifChar = 0;                                                           
 
+// Device Control Service Button Notif Configuration.                                       
+static gattCharCfg_t *buttonNotifCharConfig;                                                
 
-// Simple Profile Characteristic 2 Properties
-static uint8 simpleProfileChar2Props = GATT_PROP_READ;
+// Device Control Service Button Notif User Description                                     
+static uint8 buttonNotifCharUserDesp[] = "Button Notif\0"; 
 
-// Characteristic 2 Value
-static uint8 simpleProfileChar2 = 0;
+//-------------------------------------------------------------------
+// Device Control Service Fw Update Request Properties                                           
+static uint8 fwUpdateRequestCharProps = GATT_PROP_READ | GATT_PROP_WRITE;                       
 
-// Simple Profile Characteristic 2 User Description
-static uint8 simpleProfileChar2UserDesp[17] = "Characteristic 2";
+// Fw Update Request Value                                                                 
+static uint8 fwUpdateRequestChar = 0;                                                           
 
+// Device Control Service Fw Update Request User Description                                     
+static uint8 fwUpdateRequestCharUserDesp[] = "Fw Update Request\0";  
 
-// Simple Profile Characteristic 3 Properties
-static uint8 simpleProfileChar3Props = GATT_PROP_WRITE;
+//-------------------------------------------------------------------
+// Device Control Service Fw Version Properties                                           
+static uint8 fwVersionCharProps = GATT_PROP_READ;                       
 
-// Characteristic 3 Value
-static uint8 simpleProfileChar3 = 0;
+// Fw Version Value                                                                 
+static uint8 fwVersionChar = 0;                                                           
 
-// Simple Profile Characteristic 3 User Description
-static uint8 simpleProfileChar3UserDesp[17] = "Characteristic 3";
-
-
-// Simple Profile Characteristic 4 Properties
-static uint8 simpleProfileChar4Props = GATT_PROP_NOTIFY;
-
-// Characteristic 4 Value
-static uint8 simpleProfileChar4 = 0;
-
-// Simple Profile Characteristic 4 Configuration Each client has its own
-// instantiation of the Client Characteristic Configuration. Reads of the
-// Client Characteristic Configuration only shows the configuration for
-// that client and writes only affect the configuration of that client.
-static gattCharCfg_t *simpleProfileChar4Config;
-                                        
-// Simple Profile Characteristic 4 User Description
-static uint8 simpleProfileChar4UserDesp[17] = "Characteristic 4";
-
-
-// Simple Profile Characteristic 5 Properties
-static uint8 simpleProfileChar5Props = GATT_PROP_READ;
-
-// Characteristic 5 Value
-static uint8 simpleProfileChar5[SIMPLEPROFILE_CHAR5_LEN] = { 0, 0, 0, 0, 0 };
-
-// Simple Profile Characteristic 5 User Description
-static uint8 simpleProfileChar5UserDesp[17] = "Characteristic 5";
+// Device Control Service Fw Version User Description                                     
+static uint8 fwVersionCharUserDesp[] = "Fw Version\0";                              
+                            
 
 /*********************************************************************
  * Profile Attributes - Table
  */
 
-static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] = 
+static gattAttribute_t pgpDeviceControlAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] = 
 {
-  // Simple Profile Service
+  // Device Control Service
   { 
     { ATT_BT_UUID_SIZE, primaryServiceUUID }, /* type */
     GATT_PERMIT_READ,                         /* permissions */
     0,                                        /* handle */
-    (uint8 *)&simpleProfileService            /* pValue */
+    (uint8 *)&pgpDeviceControlService         /* pValue */
   },
+  
+    // Led Vibrate Ctrl Declaration                                 
+  {                                                               
+    { ATT_BT_UUID_SIZE, characterUUID },                          
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    &ledVibrateCtrlCharProps                                           
+  },                                                              
+                                                                  
+  // Led Vibrate Ctrl Value                                    
+  {                                                               
+    { ATT_UUID_SIZE, ledVibrateCtrlCharUUID },                         
+    GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
+    0,                                                            
+    &ledVibrateCtrlChar                                                
+  },                                                              
+                                                                  
+  // Led Vibrate Ctrl User Description                            
+  {                                                               
+    { ATT_BT_UUID_SIZE, charUserDescUUID },                       
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    ledVibrateCtrlCharUserDesp                                         
+  },                                                              
+                                                                  
+   
+  // Button Notif Declaration                                 
+  {                                                               
+    { ATT_BT_UUID_SIZE, characterUUID },                          
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    &buttonNotifCharProps                                           
+  },                                                              
+                                                                  
+  // Button Notif Value                                      
+  {                                                               
+    { ATT_UUID_SIZE, buttonNotifCharUUID },                         
+    0,                                                            
+    0,                                                            
+    &buttonNotifChar                                                
+  },                                                              
+                                                                  
+  // Button Notif configuration                               
+  {                                                               
+    { ATT_BT_UUID_SIZE, clientCharCfgUUID },                      
+    GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
+    0,                                                            
+    (uint8 *)&buttonNotifCharConfig                                 
+  },                                                              
+                                                                  
+  // Button Notif User Description                            
+  {                                                               
+    { ATT_BT_UUID_SIZE, charUserDescUUID },                       
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    buttonNotifCharUserDesp                                         
+  },  
+  
+  
+    // Fw Update Request Declaration                                 
+  {                                                               
+    { ATT_BT_UUID_SIZE, characterUUID },                          
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    &fwUpdateRequestCharProps                                           
+  },                                                              
+                                                                  
+  // Fw Update Request Value                                    
+  {                                                               
+    { ATT_UUID_SIZE, fwUpdateRequestCharUUID },                         
+    GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
+    0,                                                            
+    &fwUpdateRequestChar                                                
+  },                                                              
+                                                                  
+  // Fw Update Request User Description                            
+  {                                                               
+    { ATT_BT_UUID_SIZE, charUserDescUUID },                       
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    fwUpdateRequestCharUserDesp                                         
+  },                                                              
 
-    // Characteristic 1 Declaration
-    { 
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ, 
-      0,
-      &simpleProfileChar1Props 
-    },
+    
+    // Fw Version Declaration                                 
+  {                                                               
+    { ATT_BT_UUID_SIZE, characterUUID },                          
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    &fwVersionCharProps                                           
+  },                                                              
+                                                                  
+  // Fw Version Value                                    
+  {                                                               
+    { ATT_UUID_SIZE, fwVersionCharUUID },                         
+    GATT_PERMIT_READ,                         
+    0,                                                            
+    &fwVersionChar                                                
+  },                                                              
+                                                                  
+  // Fw Version User Description                            
+  {                                                               
+    { ATT_BT_UUID_SIZE, charUserDescUUID },                       
+    GATT_PERMIT_READ,                                             
+    0,                                                            
+    fwVersionCharUserDesp                                         
+  },                                                              
 
-      // Characteristic Value 1
-      { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar1UUID },
-        GATT_PERMIT_READ | GATT_PERMIT_WRITE, 
-        0, 
-        &simpleProfileChar1 
-      },
-
-      // Characteristic 1 User Description
-      { 
-        { ATT_BT_UUID_SIZE, charUserDescUUID },
-        GATT_PERMIT_READ, 
-        0, 
-        simpleProfileChar1UserDesp 
-      },      
-
-    // Characteristic 2 Declaration
-    { 
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ, 
-      0,
-      &simpleProfileChar2Props 
-    },
-
-      // Characteristic Value 2
-      { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar2UUID },
-        GATT_PERMIT_READ, 
-        0, 
-        &simpleProfileChar2 
-      },
-
-      // Characteristic 2 User Description
-      { 
-        { ATT_BT_UUID_SIZE, charUserDescUUID },
-        GATT_PERMIT_READ, 
-        0, 
-        simpleProfileChar2UserDesp 
-      },           
-      
-    // Characteristic 3 Declaration
-    { 
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ, 
-      0,
-      &simpleProfileChar3Props 
-    },
-
-      // Characteristic Value 3
-      { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar3UUID },
-        GATT_PERMIT_WRITE, 
-        0, 
-        &simpleProfileChar3 
-      },
-
-      // Characteristic 3 User Description
-      { 
-        { ATT_BT_UUID_SIZE, charUserDescUUID },
-        GATT_PERMIT_READ, 
-        0, 
-        simpleProfileChar3UserDesp 
-      },
-
-    // Characteristic 4 Declaration
-    { 
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ, 
-      0,
-      &simpleProfileChar4Props 
-    },
-
-      // Characteristic Value 4
-      { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar4UUID },
-        0, 
-        0, 
-        &simpleProfileChar4 
-      },
-
-      // Characteristic 4 configuration
-      { 
-        { ATT_BT_UUID_SIZE, clientCharCfgUUID },
-        GATT_PERMIT_READ | GATT_PERMIT_WRITE, 
-        0, 
-        (uint8 *)&simpleProfileChar4Config 
-      },
-      
-      // Characteristic 4 User Description
-      { 
-        { ATT_BT_UUID_SIZE, charUserDescUUID },
-        GATT_PERMIT_READ, 
-        0, 
-        simpleProfileChar4UserDesp 
-      },
-      
-    // Characteristic 5 Declaration
-    { 
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ, 
-      0,
-      &simpleProfileChar5Props 
-    },
-
-      // Characteristic Value 5
-      { 
-        { ATT_BT_UUID_SIZE, simpleProfilechar5UUID },
-        GATT_PERMIT_AUTHEN_READ, 
-        0, 
-        simpleProfileChar5 
-      },
-
-      // Characteristic 5 User Description
-      { 
-        { ATT_BT_UUID_SIZE, charUserDescUUID },
-        GATT_PERMIT_READ, 
-        0, 
-        simpleProfileChar5UserDesp 
-      },
 };
 
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
-static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
+static bStatus_t pgpDeviceControl_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
                                            uint8 *pValue, uint8 *pLen, uint16 offset,
                                            uint8 maxLen, uint8 method );
-static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
+static bStatus_t pgpDeviceControl_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
                                             uint8 *pValue, uint8 len, uint16 offset,
                                             uint8 method );
 
@@ -349,10 +310,10 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
  * PROFILE CALLBACKS
  */
 // Simple Profile Service Callbacks
-CONST gattServiceCBs_t simpleProfileCBs =
+CONST gattServiceCBs_t pgpDeviceControlCBs =
 {
-  simpleProfile_ReadAttrCB,  // Read callback function pointer
-  simpleProfile_WriteAttrCB, // Write callback function pointer
+  pgpDeviceControl_ReadAttrCB,  // Read callback function pointer
+  pgpDeviceControl_WriteAttrCB, // Write callback function pointer
   NULL                       // Authorization callback function pointer
 };
 
@@ -360,8 +321,29 @@ CONST gattServiceCBs_t simpleProfileCBs =
  * PUBLIC FUNCTIONS
  */
 
+bStatus_t utilExtractUuid16(gattAttribute_t *pAttr, uint16 *pUuid)
+{
+  bStatus_t status = SUCCESS;
+
+  if (pAttr->type.len == ATT_BT_UUID_SIZE )
+  {
+    // 16-bit UUID direct
+    *pUuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
+  }
+  else if (pAttr->type.len == ATT_UUID_SIZE)
+  {
+    // 16-bit UUID extracted bytes 0 and 1 for this service
+    *pUuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
+  } else {
+    *pUuid = 0xFFFF;
+    status = FAILURE;
+  }
+
+  return status;
+}
+
 /*********************************************************************
- * @fn      SimpleProfile_AddService
+ * @fn      PgpDeviceControl_AddService
  *
  * @brief   Initializes the Simple Profile service by registering
  *          GATT attributes with the GATT server.
@@ -371,39 +353,34 @@ CONST gattServiceCBs_t simpleProfileCBs =
  *
  * @return  Success or Failure
  */
-bStatus_t SimpleProfile_AddService( uint32 services )
+bStatus_t PgpDeviceControl_AddService( uint32 services )
 {
   uint8 status;
   
   // Allocate Client Characteristic Configuration table
-  simpleProfileChar4Config = (gattCharCfg_t *)osal_mem_alloc( sizeof(gattCharCfg_t) *
+  buttonNotifCharConfig = (gattCharCfg_t *)osal_mem_alloc( sizeof(gattCharCfg_t) *
                                                               linkDBNumConns );
-  if ( simpleProfileChar4Config == NULL )
+  if ( buttonNotifCharConfig == NULL )
   {     
     return ( bleMemAllocError );
   }
   
   // Initialize Client Characteristic Configuration attributes
-  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, simpleProfileChar4Config );
+  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, buttonNotifCharConfig );
   
-  if ( services & SIMPLEPROFILE_SERVICE )
-  {
-    // Register GATT attribute list and CBs with GATT Server App
-    status = GATTServApp_RegisterService( simpleProfileAttrTbl, 
-                                          GATT_NUM_ATTRS( simpleProfileAttrTbl ),
+
+  // Register GATT attribute list and CBs with GATT Server App
+  status = GATTServApp_RegisterService( pgpDeviceControlAttrTbl, 
+                                          GATT_NUM_ATTRS( pgpDeviceControlAttrTbl ),
                                           GATT_MAX_ENCRYPT_KEY_SIZE,
-                                          &simpleProfileCBs );
-  }
-  else
-  {
-    status = SUCCESS;
-  }
+                                          &pgpDeviceControlCBs );
+
   
   return ( status );
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_RegisterAppCBs
+ * @fn      PgpDeviceControl_RegisterAppCBs
  *
  * @brief   Registers the application callback function. Only call 
  *          this function once.
@@ -412,11 +389,11 @@ bStatus_t SimpleProfile_AddService( uint32 services )
  *
  * @return  SUCCESS or bleAlreadyInRequestedMode
  */
-bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks )
+bStatus_t PgpDeviceControl_RegisterAppCBs( pgpDeviceControlCBs_t *appCallbacks )
 {
   if ( appCallbacks )
   {
-    simpleProfile_AppCBs = appCallbacks;
+    pgpDeviceControl_AppCBs = appCallbacks;
     
     return ( SUCCESS );
   }
@@ -427,7 +404,7 @@ bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks )
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_SetParameter
+ * @fn      PgpDeviceControl_SetParameter
  *
  * @brief   Set a Simple Profile parameter.
  *
@@ -440,70 +417,60 @@ bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks )
  *
  * @return  bStatus_t
  */
-bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
+bStatus_t PgpDeviceControl_SetParameter( uint8 param, uint8 len, void *value )
 {
   bStatus_t ret = SUCCESS;
   switch ( param )
   {
-    case SIMPLEPROFILE_CHAR1:
-      if ( len == sizeof ( uint8 ) ) 
-      {
-        simpleProfileChar1 = *((uint8*)value);
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
+    case LED_VIBRATE_CTRL_CHAR:                                                                      
+      if ( len == sizeof ( uint8 ) )                                                          
+      {                                                                                       
+        ledVibrateCtrlChar = *((uint8*)value);                                                     
+      }                                                                                       
+      else                                                                                    
+      {                                                                                       
+        ret = bleInvalidRange;                                                                
+      }                                                                                       
+      break;                                                                                  
+                                                                                              
+    case BUTTON_NOTIF_CHAR:                                                                      
+      if ( len == sizeof ( uint8 ) )                                                          
+      {                                                                                       
+        buttonNotifChar = *((uint8*)value);                                                     
+                                                                                              
+        // See if Notification has been enabled                                               
+        GATTServApp_ProcessCharCfg( buttonNotifCharConfig, &buttonNotifChar, FALSE,               
+                                    pgpDeviceControlAttrTbl, GATT_NUM_ATTRS( pgpDeviceControlAttrTbl ),       
+                                    INVALID_TASK_ID, pgpDeviceControl_ReadAttrCB );                   
+      }                                                                                       
+      else                                                                                    
+      {                                                                                       
+        ret = bleInvalidRange;                                                                
+      }                                                                                       
       break;
+      
+    case FW_UPDATE_REQUEST_CHAR:                                                                      
+      if ( len == sizeof ( uint8 ) )                                                          
+      {                                                                                       
+        fwUpdateRequestChar = *((uint8*)value);                                                     
+      }                                                                                       
+      else                                                                                    
+      {                                                                                       
+        ret = bleInvalidRange;                                                                
+      }                                                                                       
+      break;                                                                                  
 
-    case SIMPLEPROFILE_CHAR2:
-      if ( len == sizeof ( uint8 ) ) 
-      {
-        simpleProfileChar2 = *((uint8*)value);
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
-      break;
+    case FW_VERSION_CHAR:                                                                      
+      if ( len == sizeof ( uint8 ) )                                                          
+      {                                                                                       
+        fwVersionChar = *((uint8*)value);                                                     
+      }                                                                                       
+      else                                                                                    
+      {                                                                                       
+        ret = bleInvalidRange;                                                                
+      }                                                                                       
+      break;                                                                                  
 
-    case SIMPLEPROFILE_CHAR3:
-      if ( len == sizeof ( uint8 ) ) 
-      {
-        simpleProfileChar3 = *((uint8*)value);
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
-      break;
-
-    case SIMPLEPROFILE_CHAR4:
-      if ( len == sizeof ( uint8 ) ) 
-      {
-        simpleProfileChar4 = *((uint8*)value);
-        
-        // See if Notification has been enabled
-        GATTServApp_ProcessCharCfg( simpleProfileChar4Config, &simpleProfileChar4, FALSE,
-                                    simpleProfileAttrTbl, GATT_NUM_ATTRS( simpleProfileAttrTbl ),
-                                    INVALID_TASK_ID, simpleProfile_ReadAttrCB );
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
-      break;
-
-    case SIMPLEPROFILE_CHAR5:
-      if ( len == SIMPLEPROFILE_CHAR5_LEN ) 
-      {
-        VOID memcpy( simpleProfileChar5, value, SIMPLEPROFILE_CHAR5_LEN );
-      }
-      else
-      {
-        ret = bleInvalidRange;
-      }
-      break;
       
     default:
       ret = INVALIDPARAMETER;
@@ -514,7 +481,7 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
 }
 
 /*********************************************************************
- * @fn      SimpleProfile_GetParameter
+ * @fn      PgpDeviceControl_GetParameter
  *
  * @brief   Get a Simple Profile parameter.
  *
@@ -526,30 +493,26 @@ bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value )
  *
  * @return  bStatus_t
  */
-bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
+bStatus_t PgpDeviceControl_GetParameter( uint8 param, void *value )
 {
   bStatus_t ret = SUCCESS;
   switch ( param )
   {
-    case SIMPLEPROFILE_CHAR1:
-      *((uint8*)value) = simpleProfileChar1;
+    case LED_VIBRATE_CTRL_CHAR:
+      *((uint8*)value) = ledVibrateCtrlChar;
       break;
 
-    case SIMPLEPROFILE_CHAR2:
-      *((uint8*)value) = simpleProfileChar2;
+    case BUTTON_NOTIF_CHAR:
+      *((uint8*)value) = buttonNotifChar;
       break;      
 
-    case SIMPLEPROFILE_CHAR3:
-      *((uint8*)value) = simpleProfileChar3;
+    case FW_UPDATE_REQUEST_CHAR:
+      *((uint8*)value) = fwUpdateRequestChar;
       break;  
 
-    case SIMPLEPROFILE_CHAR4:
-      *((uint8*)value) = simpleProfileChar4;
-      break;
-
-    case SIMPLEPROFILE_CHAR5:
-      VOID memcpy( value, simpleProfileChar5, SIMPLEPROFILE_CHAR5_LEN );
-      break;      
+    case FW_VERSION_CHAR:
+      *((uint8*)value) = fwVersionChar;
+      break;   
       
     default:
       ret = INVALIDPARAMETER;
@@ -560,7 +523,7 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
 }
 
 /*********************************************************************
- * @fn          simpleProfile_ReadAttrCB
+ * @fn          pgpDeviceControl_ReadAttrCB
  *
  * @brief       Read an attribute.
  *
@@ -574,10 +537,11 @@ bStatus_t SimpleProfile_GetParameter( uint8 param, void *value )
  *
  * @return      SUCCESS, blePending or Failure
  */
-static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
+static bStatus_t pgpDeviceControl_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr, 
                                            uint8 *pValue, uint8 *pLen, uint16 offset,
                                            uint8 maxLen, uint8 method )
 {
+  uint16 uuid;
   bStatus_t status = SUCCESS;
 
   // If attribute permissions require authorization to read, return error
@@ -593,51 +557,40 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
     return ( ATT_ERR_ATTR_NOT_LONG );
   }
  
-  if ( pAttr->type.len == ATT_BT_UUID_SIZE )
-  {
-    // 16-bit UUID
-    uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
-    switch ( uuid )
-    {
-      // No need for "GATT_SERVICE_UUID" or "GATT_CLIENT_CHAR_CFG_UUID" cases;
-      // gattserverapp handles those reads
-
-      // characteristics 1 and 2 have read permissions
-      // characteritisc 3 does not have read permissions; therefore it is not
-      //   included here
-      // characteristic 4 does not have read permissions, but because it
-      //   can be sent as a notification, it is included here
-      case SIMPLEPROFILE_CHAR1_UUID:
-      case SIMPLEPROFILE_CHAR2_UUID:
-      case SIMPLEPROFILE_CHAR4_UUID:
-        *pLen = 1;
-        pValue[0] = *pAttr->pValue;
-        break;
-
-      case SIMPLEPROFILE_CHAR5_UUID:
-        *pLen = SIMPLEPROFILE_CHAR5_LEN;
-        VOID memcpy( pValue, pAttr->pValue, SIMPLEPROFILE_CHAR5_LEN );
-        break;
-        
-      default:
-        // Should never get here! (characteristics 3 and 4 do not have read permissions)
-        *pLen = 0;
-        status = ATT_ERR_ATTR_NOT_FOUND;
-        break;
-    }
-  }
-  else
-  {
-    // 128-bit UUID
-    *pLen = 0;
-    status = ATT_ERR_INVALID_HANDLE;
-  }
-
-  return ( status );
+  
+  if (utilExtractUuid16(pAttr,&uuid) == FAILURE) {                                      
+    // Invalid handle                                                                   
+    *pLen = 0;                                                                          
+    return ATT_ERR_INVALID_HANDLE;                                                      
+  }                                                                                     
+                                                                                        
+  switch ( uuid )                                                                       
+  {                                                                                     
+    // No need for "GATT_SERVICE_UUID" or "GATT_CLIENT_CHAR_CFG_UUID" cases;            
+    // gattserverapp handles those reads                                                
+                                                                                        
+    // characteristics 1 has read permissions                                           
+    // characteristic 2 does not have read permissions, but because it                  
+    //   can be sent as a notification, it is included here                             
+  case LED_VIBRATE_CTRL_CHAR_UUID:                                                             
+  case BUTTON_NOTIF_CHAR_UUID:
+  case FW_UPDATE_REQUEST_CHAR_UUID:
+  case FW_VERSION_CHAR_UUID:
+    *pLen = 1;                                                                          
+    pValue[0] = *pAttr->pValue;                                                         
+    break;                                                                              
+                                                                                        
+  default:                                                                              
+    // Should never get here! (characteristics 3 and 4 do not have read permissions)    
+    *pLen = 0;                                                                          
+    status = ATT_ERR_ATTR_NOT_FOUND;                                                    
+    break;                                                                              
+  }                                                                                     
+  return ( status ); 
 }
 
 /*********************************************************************
- * @fn      simpleProfile_WriteAttrCB
+ * @fn      pgpDeviceControl_WriteAttrCB
  *
  * @brief   Validate attribute data prior to a write operation
  *
@@ -650,12 +603,13 @@ static bStatus_t simpleProfile_ReadAttrCB( uint16 connHandle, gattAttribute_t *p
  *
  * @return  SUCCESS, blePending or Failure
  */
-static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
+static bStatus_t pgpDeviceControl_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
                                             uint8 *pValue, uint8 len, uint16 offset,
                                             uint8 method )
 {
   bStatus_t status = SUCCESS;
   uint8 notifyApp = 0xFF;
+  uint16 uuid; 
   
   // If attribute permissions require authorization to write, return error
   if ( gattPermitAuthorWrite( pAttr->permissions ) )
@@ -664,68 +618,64 @@ static bStatus_t simpleProfile_WriteAttrCB( uint16 connHandle, gattAttribute_t *
     return ( ATT_ERR_INSUFFICIENT_AUTHOR );
   }
   
-  if ( pAttr->type.len == ATT_BT_UUID_SIZE )
+  if (utilExtractUuid16(pAttr,&uuid) == FAILURE) {                                       
+    // Invalid handle                                                                    
+    return ATT_ERR_INVALID_HANDLE;                                                       
+  }      
+  
+ 
+  switch ( uuid )
   {
-    // 16-bit UUID
-    uint16 uuid = BUILD_UINT16( pAttr->type.uuid[0], pAttr->type.uuid[1]);
-    switch ( uuid )
-    {
-      case SIMPLEPROFILE_CHAR1_UUID:
-      case SIMPLEPROFILE_CHAR3_UUID:
+    case LED_VIBRATE_CTRL_CHAR_UUID:
+    case FW_UPDATE_REQUEST_CHAR_UUID:
 
-        //Validate the value
-        // Make sure it's not a blob oper
-        if ( offset == 0 )
+      //Validate the value
+      // Make sure it's not a blob oper
+      if ( offset == 0 )
+      {
+        if ( len != 1 )
         {
-          if ( len != 1 )
-          {
-            status = ATT_ERR_INVALID_VALUE_SIZE;
-          }
+          status = ATT_ERR_INVALID_VALUE_SIZE;
         }
-        else
-        {
-          status = ATT_ERR_ATTR_NOT_LONG;
-        }
+      }
+      else
+      {
+        status = ATT_ERR_ATTR_NOT_LONG;
+      }
         
-        //Write the value
-        if ( status == SUCCESS )
-        {
-          uint8 *pCurValue = (uint8 *)pAttr->pValue;        
-          *pCurValue = pValue[0];
+      //Write the value
+      if ( status == SUCCESS )
+      {
+        uint8 *pCurValue = (uint8 *)pAttr->pValue;        
+        *pCurValue = pValue[0];
 
-          if( pAttr->pValue == &simpleProfileChar1 )
-          {
-            notifyApp = SIMPLEPROFILE_CHAR1;        
-          }
-          else
-          {
-            notifyApp = SIMPLEPROFILE_CHAR3;           
-          }
+        if( pAttr->pValue == &ledVibrateCtrlChar )
+        {
+          notifyApp = LED_VIBRATE_CTRL_CHAR;        
         }
+        else if( pAttr->pValue == &fwUpdateRequestChar )
+        {
+          notifyApp = FW_UPDATE_REQUEST_CHAR;           
+        }
+      }
              
-        break;
+      break;
 
-      case GATT_CLIENT_CHAR_CFG_UUID:
-        status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
+    case GATT_CLIENT_CHAR_CFG_UUID:
+      status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                  offset, GATT_CLIENT_CFG_NOTIFY );
-        break;
+      break;
         
-      default:
-        // Should never get here! (characteristics 2 and 4 do not have write permissions)
-        status = ATT_ERR_ATTR_NOT_FOUND;
-        break;
-    }
-  }
-  else
-  {
-    // 128-bit UUID
-    status = ATT_ERR_INVALID_HANDLE;
+    default:
+      // Should never get here! (characteristics 2 and 4 do not have write permissions)
+      status = ATT_ERR_ATTR_NOT_FOUND;
+      break;
   }
 
   // If a charactersitic value changed then callback function to notify application of change
-  if ( (notifyApp != 0xFF ) && simpleProfile_AppCBs && simpleProfile_AppCBs->pfnSimpleProfileChange )
+  if ( (notifyApp != 0xFF ) && pgpDeviceControl_AppCBs && pgpDeviceControl_AppCBs->pfnPgpDeviceControlChange )
   {
-    simpleProfile_AppCBs->pfnSimpleProfileChange( notifyApp );  
+    pgpDeviceControl_AppCBs->pfnPgpDeviceControlChange( notifyApp );  
   }
   
   return ( status );
