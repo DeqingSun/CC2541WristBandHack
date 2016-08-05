@@ -498,6 +498,8 @@
           <state>$PROJ_DIR$\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\Profiles\Keys\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Keys</state>
+          <state>$PROJ_DIR$\..\Profiles\Batt\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -5922,6 +5924,12 @@
   </group>
   <group>
     <name>PROFILES</name>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Batt\CC254x\battservice.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\Batt\CC254x\battservice.h</name>
+    </file>
     <file>
       <name>$PROJ_DIR$\..\Profiles\DevInfo\devinfoservice.c</name>
     </file>

@@ -2,5 +2,6 @@ CC2541
 
 settings
 
-SimpleBLEBroadcaster.dep
+*.dep
+*.ewt
 *.tmp

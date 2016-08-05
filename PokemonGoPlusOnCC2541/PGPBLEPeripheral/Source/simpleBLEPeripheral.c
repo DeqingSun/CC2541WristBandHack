@@ -80,6 +80,7 @@
 #include "gapbondmgr.h"
 
 #include "simpleBLEPeripheral.h"
+#include "battservice.h"
 
 #if defined FEATURE_OAD
   #include "oad.h"
@@ -134,6 +135,12 @@
 
 // Length of bd addr as a string
 #define B_ADDR_STR_LEN                        15
+   
+// Battery level is critical when it is less than this %
+#define DEFAULT_BATT_CRITICAL_LEVEL           6 
+
+// Battery measurement period in ms
+#define DEFAULT_BATT_PERIOD                   15000
 
 /*********************************************************************
  * TYPEDEFS
@@ -212,7 +219,8 @@ static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
 static void pgpDeviceControlChangeCB( uint8 paramID );
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
-
+static void pokemonGoPlusBattPeriodicTask( void );
+static void pokemonGoPlusBattCB(uint8 event);
 
 
 /*********************************************************************
@@ -324,12 +332,19 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     GAPBondMgr_SetParameter( GAPBOND_IO_CAPABILITIES, sizeof ( uint8 ), &ioCap );
     GAPBondMgr_SetParameter( GAPBOND_BONDING_ENABLED, sizeof ( uint8 ), &bonding );
   }
+  
+  // Setup Battery Characteristic Values
+  {
+    uint8 critical = DEFAULT_BATT_CRITICAL_LEVEL;
+    Batt_SetParameter( BATT_PARAM_CRITICAL_LEVEL, sizeof (uint8 ), &critical );
+  }
 
   // Initialize GATT attributes
   GGS_AddService( GATT_ALL_SERVICES );            // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
   DevInfo_AddService();                           // Device Information Service
   PgpDeviceControl_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
+  Batt_AddService( );
 #if defined FEATURE_OAD
   VOID OADTarget_AddService();                    // OAD Profile
 #endif
@@ -372,6 +387,9 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
 
   // Register callback with SimpleGATTprofile
   VOID PgpDeviceControl_RegisterAppCBs( &simpleBLEPeripheral_PgpDeviceControlCBs );
+  
+  // Register for Battery service callback;
+  Batt_Register ( pokemonGoPlusBattCB );
 
   // Enable clock divide on halt
   // This reduces active current while radio is active and CC254x MCU
@@ -444,6 +462,14 @@ uint16 SimpleBLEPeripheral_ProcessEvent( uint8 task_id, uint16 events )
 
     return (events ^ SBP_PERIODIC_EVT);
   }
+  
+  if ( events & BATT_PERIODIC_EVT )
+  {
+    // Perform periodic battery task
+    pokemonGoPlusBattPeriodicTask();
+    
+    return (events ^ BATT_PERIODIC_EVT);
+  } 
 
   // Discard unknown events
   return 0;
@@ -752,6 +778,53 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 #endif
 
 
+}
+
+/*********************************************************************
+ * @fn      pokemonGoPlusBattCB
+ *
+ * @brief   Callback function for battery service.
+ *
+ * @param   event - service event
+ *
+ * @return  none
+ */
+static void pokemonGoPlusBattCB(uint8 event)
+{
+  if (event == BATT_LEVEL_NOTI_ENABLED)
+  {
+    // if connected start periodic measurement
+    if (gapProfileState == GAPROLE_CONNECTED)
+    {
+      osal_start_timerEx( simpleBLEPeripheral_TaskID, BATT_PERIODIC_EVT, DEFAULT_BATT_PERIOD );
+    } 
+  }
+  else if (event == BATT_LEVEL_NOTI_DISABLED)
+  {
+    // stop periodic measurement
+    osal_stop_timerEx( simpleBLEPeripheral_TaskID, BATT_PERIODIC_EVT );
+  }
+}
+
+/*********************************************************************
+ * @fn      pokemonGoPlusBattPeriodicTask
+ *
+ * @brief   Perform a periodic task for battery measurement.
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void pokemonGoPlusBattPeriodicTask( void )
+{
+  if (gapProfileState == GAPROLE_CONNECTED)
+  {
+    // perform battery level check
+    Batt_MeasLevel( );
+    
+    // Restart timer
+    osal_start_timerEx( simpleBLEPeripheral_TaskID, BATT_PERIODIC_EVT, DEFAULT_BATT_PERIOD );
+  }
 }
 
 /*********************************************************************
