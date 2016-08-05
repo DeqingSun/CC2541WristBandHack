@@ -6002,6 +6002,12 @@
       </excluded>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pgpCertificate.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pgpCertificate.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\Profiles\PokemonGoPlus\pgpDeviceControl.c</name>
     </file>
     <file>
