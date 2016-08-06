@@ -290,7 +290,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // being discoverable for 30.72 second, and will not being advertising again
     // until the enabler is set back to TRUE
     uint16 gapRole_AdvertOffTime = 0;
-    uint16 tgap_LimitAdvertTimeout = 30/3;        //unit in seconds
+    uint16 tgap_LimitAdvertTimeout = 30/1;        //unit in seconds
 
     uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
     uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
@@ -398,9 +398,11 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   //But if DMA_PM=1 (When power saving), CTS is used. On test board there is a jumper
   P2SEL = 0|(0x40); // Configure Port 2 as GPIO, Give USART1 Priority
   
-  
-  //debug
-  P0DIR|=BV(6)|BV(5)|BV(4);
+  P0DIR|=BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
+  P0&=~(BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7));
+
+  P1DIR|=BV(2)|BV(3)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
+  P1&=~(BV(2)|BV(3)|BV(5)|BV(6)|BV(7));
 
   // Register callback with SimpleGATTprofile
   VOID PgpDeviceControl_RegisterAppCBs( &simpleBLEPeripheral_PgpDeviceControlCBs );
