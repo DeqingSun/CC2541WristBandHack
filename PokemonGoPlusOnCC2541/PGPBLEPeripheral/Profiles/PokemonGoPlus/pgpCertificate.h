@@ -61,28 +61,27 @@ extern "C"
  * CONSTANTS
  */
 
-// Profile Parameters
-#define SIMPLEPROFILE_CHAR1                   0  // RW uint8 - Profile Characteristic 1 value 
-#define SIMPLEPROFILE_CHAR2                   1  // RW uint8 - Profile Characteristic 2 value
-#define SIMPLEPROFILE_CHAR3                   2  // RW uint8 - Profile Characteristic 3 value
-#define SIMPLEPROFILE_CHAR4                   3  // RW uint8 - Profile Characteristic 4 value
-#define SIMPLEPROFILE_CHAR5                   4  // RW uint8 - Profile Characteristic 4 value
-  
-// Simple Profile Service UUID
-#define SIMPLEPROFILE_SERV_UUID               0xFFF0
-    
-// Key Pressed UUID
-#define SIMPLEPROFILE_CHAR1_UUID            0xFFF1
-#define SIMPLEPROFILE_CHAR2_UUID            0xFFF2
-#define SIMPLEPROFILE_CHAR3_UUID            0xFFF3
-#define SIMPLEPROFILE_CHAR4_UUID            0xFFF4
-#define SIMPLEPROFILE_CHAR5_UUID            0xFFF5
-  
-// Simple Keys Profile Services bit fields
-#define SIMPLEPROFILE_SERVICE               0x00000001
+//public static final UUID UUID_CERTIFICATE_SERVICE = UUID.fromString("bbe87709-5b89-4433-ab7f-8b8eef0d8e37");
+//public static final UUID UUID_CENTRAL_TO_SFIDA_CHAR = UUID.fromString("bbe87709-5b89-4433-ab7f-8b8eef0d8e38");
+//public static final UUID UUID_SFIDA_COMMANDS_CHAR = UUID.fromString("bbe87709-5b89-4433-ab7f-8b8eef0d8e39");
+//public static final UUID UUID_SFIDA_TO_CENTRAL_CHAR = UUID.fromString("bbe87709-5b89-4433-ab7f-8b8eef0d8e3a");
 
-// Length of Characteristic 5 in bytes
-#define SIMPLEPROFILE_CHAR5_LEN           5  
+// Profile Parameters
+#define CENTRAL_TO_SFIDA_CHAR                 0  //RW
+#define SFIDA_COMMANDS_CHAR                   1  //RW
+#define SFIDA_TO_CENTRAL_CHAR                 2  //RW
+    
+// UUID for CERTIFICATE_SERVICE service                          
+#define CERTIFICATE_SERV_UUID                  0x8E37    
+/* The 16 bit UUID listen above is only a part of the 
+ * full DEVICE CONTROL 128 bit UUID:                       
+ * BBE87709-5B89-4433-AB7F-8B8EEF0D???? */   
+   
+                                                      
+//  Certificate service characteristic UUID              
+#define CENTRAL_TO_SFIDA_CHAR_UUID          0x8E38    
+#define SFIDA_COMMANDS_CHAR_UUID            0x8E39 
+#define SFIDA_TO_CENTRAL_CHAR_UUID          0x8E3A 
 
 /*********************************************************************
  * TYPEDEFS
@@ -93,17 +92,21 @@ extern "C"
  * MACROS
  */
 
+// CERTIFICATE_SERVICE Base 128-bit UUID:  BBE87709-5B89-4433-AB7F-8B8EEF0DXXXX
+#define CERTIFICATE_SERVICE_BASE_UUID_128( uuid )  LO_UINT16( uuid ), HI_UINT16( uuid ), 0x0D, 0xEF, 0x8E, 0x8B, 0x7F, 0xAB, \
+                                  0x33, 0x44, 0x89, 0x5B, 0x09, 0x77, 0xE8, 0xBB
+
 /*********************************************************************
  * Profile Callbacks
  */
 
 // Callback when a characteristic value has changed
-typedef void (*simpleProfileChange_t)( uint8 paramID );
+typedef void (*pgpCertificateChange_t)( uint8 paramID );
 
 typedef struct
 {
-  simpleProfileChange_t        pfnSimpleProfileChange;  // Called when characteristic value changes
-} simpleProfileCBs_t;
+  pgpCertificateChange_t        pfnPgpCertificateChange;  // Called when characteristic value changes
+} pgpCertificateCBs_t;
 
     
 
@@ -113,25 +116,25 @@ typedef struct
 
 
 /*
- * SimpleProfile_AddService- Initializes the Simple GATT Profile service by registering
+ * PgpCertificate_AddService- Initializes the Simple GATT Profile service by registering
  *          GATT attributes with the GATT server.
  *
  * @param   services - services to add. This is a bit map and can
  *                     contain more than one service.
  */
 
-extern bStatus_t SimpleProfile_AddService( uint32 services );
+extern bStatus_t PgpCertificate_AddService( uint32 services );
 
 /*
- * SimpleProfile_RegisterAppCBs - Registers the application callback function.
+ * PgpCertificate_RegisterAppCBs - Registers the application callback function.
  *                    Only call this function once.
  *
  *    appCallbacks - pointer to application callbacks.
  */
-extern bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks );
+extern bStatus_t PgpCertificate_RegisterAppCBs( pgpCertificateCBs_t *appCallbacks );
 
 /*
- * SimpleProfile_SetParameter - Set a Simple GATT Profile parameter.
+ * PgpCertificate_SetParameter - Set a Simple GATT Profile parameter.
  *
  *    param - Profile parameter ID
  *    len - length of data to right
@@ -140,10 +143,10 @@ extern bStatus_t SimpleProfile_RegisterAppCBs( simpleProfileCBs_t *appCallbacks 
  *          data type (example: data type of uint16 will be cast to 
  *          uint16 pointer).
  */
-extern bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value );
+extern bStatus_t PgpCertificate_SetParameter( uint8 param, uint8 len, void *value );
   
 /*
- * SimpleProfile_GetParameter - Get a Simple GATT Profile parameter.
+ * PgpCertificate_GetParameter - Get a Simple GATT Profile parameter.
  *
  *    param - Profile parameter ID
  *    value - pointer to data to write.  This is dependent on
@@ -151,7 +154,7 @@ extern bStatus_t SimpleProfile_SetParameter( uint8 param, uint8 len, void *value
  *          data type (example: data type of uint16 will be cast to 
  *          uint16 pointer).
  */
-extern bStatus_t SimpleProfile_GetParameter( uint8 param, void *value );
+extern bStatus_t PgpCertificate_GetParameter( uint8 param, void *value );
 
 
 /*********************************************************************

@@ -74,6 +74,7 @@
 #include "gattservapp.h"
 #include "devinfoservice.h"
 #include "pgpDeviceControl.h"
+#include "pgpCertificate.h"
 
 #include "peripheral.h"
 
@@ -218,6 +219,7 @@ static void simpleBLEPeripheral_ProcessGATTMsg( gattMsgEvent_t *pMsg );
 static void peripheralStateNotificationCB( gaprole_States_t newState );
 static void performPeriodicTask( void );
 static void pgpDeviceControlChangeCB( uint8 paramID );
+static void pgpCertificateChangeCB( uint8 paramID );
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
 static void pokemonGoPlusBattPeriodicTask( void );
 static void pokemonGoPlusBattCB(uint8 event);
@@ -245,6 +247,10 @@ static gapBondCBs_t simpleBLEPeripheral_BondMgrCBs =
 static pgpDeviceControlCBs_t simpleBLEPeripheral_PgpDeviceControlCBs =
 {
   pgpDeviceControlChangeCB    // Charactersitic value change callback
+};
+static pgpCertificateCBs_t simpleBLEPeripheral_PgpCertificateCBs =
+{
+  pgpCertificateChangeCB    // Charactersitic value change callback
 };
 /*********************************************************************
  * PUBLIC FUNCTIONS
@@ -344,6 +350,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
   DevInfo_AddService();                           // Device Information Service
   PgpDeviceControl_AddService( GATT_ALL_SERVICES );  // Simple GATT Profile
+  PgpCertificate_AddService( GATT_ALL_SERVICES );    // Simple GATT Profile
   Batt_AddService( );
 #if defined FEATURE_OAD
   VOID OADTarget_AddService();                    // OAD Profile
@@ -360,7 +367,15 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     PgpDeviceControl_SetParameter( FW_UPDATE_REQUEST_CHAR, sizeof ( uint8 ), &charValue3 );
     PgpDeviceControl_SetParameter( FW_VERSION_CHAR, sizeof ( uint8 ), &charValue4 );
   }
-
+  // Setup the PgpCertificate Characteristic Values
+  {
+    uint8 charValue1 = 5;
+    uint8 charValue2 = 6;
+    uint8 charValue3 = 7;
+    PgpCertificate_SetParameter( CENTRAL_TO_SFIDA_CHAR, sizeof ( uint8 ), &charValue1 );
+    PgpCertificate_SetParameter( SFIDA_COMMANDS_CHAR, sizeof ( uint8 ), &charValue2 );
+    PgpCertificate_SetParameter( SFIDA_TO_CENTRAL_CHAR, sizeof ( uint8 ), &charValue3 );
+  }
   
   
   HalLedSet( (HAL_LED_1_RED | HAL_LED_2_BLUE), HAL_LED_MODE_OFF );
@@ -387,6 +402,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
 
   // Register callback with SimpleGATTprofile
   VOID PgpDeviceControl_RegisterAppCBs( &simpleBLEPeripheral_PgpDeviceControlCBs );
+  VOID PgpCertificate_RegisterAppCBs( &simpleBLEPeripheral_PgpCertificateCBs );
   
   // Register for Battery service callback;
   Batt_Register ( pokemonGoPlusBattCB );
@@ -890,6 +906,39 @@ static void pgpDeviceControlChangeCB( uint8 paramID )
 
       break;
 
+    default:
+      // should not reach here!
+      break;
+  }
+}
+
+/*********************************************************************
+ * @fn      pgpCertificateChangeCB
+ *
+ * @brief   Callback from SimpleBLEProfile indicating a value change
+ *
+ * @param   paramID - parameter ID of the value that was changed.
+ *
+ * @return  none
+ */
+static void pgpCertificateChangeCB( uint8 paramID )
+{
+  uint8 newValue;
+
+  switch( paramID )
+  {
+    case CENTRAL_TO_SFIDA_CHAR:
+      PgpCertificate_GetParameter( CENTRAL_TO_SFIDA_CHAR, &newValue );
+      break;
+
+    case SFIDA_COMMANDS_CHAR:
+      PgpCertificate_GetParameter( SFIDA_COMMANDS_CHAR, &newValue );
+      break;
+
+    case SFIDA_TO_CENTRAL_CHAR:
+      PgpCertificate_GetParameter( SFIDA_TO_CENTRAL_CHAR, &newValue );
+      break;
+      
     default:
       // should not reach here!
       break;
