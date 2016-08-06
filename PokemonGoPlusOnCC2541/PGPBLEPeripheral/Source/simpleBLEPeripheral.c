@@ -97,19 +97,18 @@
  */
 
 // How often to perform periodic event
-#define SBP_PERIODIC_EVT_PERIOD                   5000
+#define SBP_PERIODIC_EVT_PERIOD                   0
 
 // What is the advertising interval when device is discoverable (units of 625us, 160=100ms)
 #define DEFAULT_ADVERTISING_INTERVAL          160
 
 // Limited discoverable mode advertises for 30.72s, and then stops
 // General discoverable mode advertises indefinitely
+// We don't want to advertise too long, we want it to enter sleep
 
-#if defined ( CC2540_MINIDK )
 #define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_LIMITED
-#else
-#define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_GENERAL
-#endif  // defined ( CC2540_MINIDK )
+//#define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_GENERAL
+
 
 // Minimum connection interval (units of 1.25ms, 80=100ms) if automatic parameter update request is enabled
 #define DEFAULT_DESIRED_MIN_CONN_INTERVAL     80
@@ -291,6 +290,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // being discoverable for 30.72 second, and will not being advertising again
     // until the enabler is set back to TRUE
     uint16 gapRole_AdvertOffTime = 0;
+    uint16 tgap_LimitAdvertTimeout = 30/3;        //unit in seconds
 
     uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
     uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
@@ -301,6 +301,8 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // Set the GAP Role Parameters
     GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
     GAPRole_SetParameter( GAPROLE_ADVERT_OFF_TIME, sizeof( uint16 ), &gapRole_AdvertOffTime );
+    
+    GAP_SetParamValue( TGAP_LIM_ADV_TIMEOUT, tgap_LimitAdvertTimeout ); //set timeout time
 
     GAPRole_SetParameter( GAPROLE_SCAN_RSP_DATA, sizeof ( scanRspData ), scanRspData );
     GAPRole_SetParameter( GAPROLE_ADVERT_DATA, sizeof( advertData ), advertData );
@@ -460,7 +462,7 @@ uint16 SimpleBLEPeripheral_ProcessEvent( uint8 task_id, uint16 events )
     VOID GAPBondMgr_Register( &simpleBLEPeripheral_BondMgrCBs );
 
     // Set timer for first periodic event
-    osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
+    if ( SBP_PERIODIC_EVT_PERIOD ) osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
 
     return ( events ^ SBP_START_DEVICE_EVT );
   }
@@ -468,8 +470,7 @@ uint16 SimpleBLEPeripheral_ProcessEvent( uint8 task_id, uint16 events )
   if ( events & SBP_PERIODIC_EVT )
   {
     // Restart timer
-    if ( SBP_PERIODIC_EVT_PERIOD )
-    {
+    if ( SBP_PERIODIC_EVT_PERIOD ){
       osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
     }
 
@@ -547,8 +548,6 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
       #if (defined HAL_UART) && (HAL_UART == TRUE)
         HalUARTWrite ( HAL_UART_PORT_1, "KEY down\n", 9 );
       #endif
-
-      HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_ON );
     }else{
       uint16 keyPressDuration=osal_GetSystemClock()-keyDownTime;
       #if (defined HAL_UART) && (HAL_UART == TRUE)
@@ -559,12 +558,19 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
           uint8 strLength=strlen(buf);
           HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
         }
-        if (keyPressDuration<300){
-          uint8 buttonValue=0x0F;
-          PgpDeviceControl_SetParameter( BUTTON_NOTIF_CHAR, sizeof ( uint8 ), &buttonValue );
-        }
       #endif
-      HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_OFF );
+      if (keyPressDuration<300){
+        uint8 buttonValue=0x0F;
+        PgpDeviceControl_SetParameter( BUTTON_NOTIF_CHAR, sizeof ( uint8 ), &buttonValue );
+      }
+      if (keyPressDuration>2500){     //long press
+        uint8 current_adv_enabled_status;
+        GAPRole_GetParameter( GAPROLE_ADVERT_ENABLED, &current_adv_enabled_status );
+        if (!current_adv_enabled_status){
+          uint8 new_adv_enabled_status=true;
+          GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &new_adv_enabled_status );
+        }
+      }
     }
   }
   
@@ -665,19 +671,13 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
         DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
 
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          // Display device address
-          //HalLcdWriteString( bdAddr2Str( ownAddress ),  HAL_LCD_LINE_2 );
-          //HalLcdWriteString( "Initialized",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
       }
       break;
 
     case GAPROLE_ADVERTISING:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          //HalLcdWriteString( "Advertising",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+        //Called when ADVERTISING Starts
+        HalLedBlink( HAL_LED_2_BLUE, 0, 5, 2000 );
       }
       break;
 
@@ -703,9 +703,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
       
     case GAPROLE_CONNECTED:
       {        
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          //HalLcdWriteString( "Connected",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+        HalLedBlink( HAL_LED_2_BLUE, 0, 2, 5000 );
           
 #ifdef PLUS_BROADCASTER
         // Only turn advertising on for this state when we first connect
@@ -741,9 +739,8 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
       break;      
     case GAPROLE_WAITING:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          //HalLcdWriteString( "Disconnected",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+        //Called when ADVERTISING Ends
+        HalLedSet(HAL_LED_2_BLUE, HAL_LED_MODE_OFF );
           
 #ifdef PLUS_BROADCASTER                
         uint8 advertEnabled = TRUE;
@@ -859,23 +856,7 @@ static void pokemonGoPlusBattPeriodicTask( void )
  */
 static void performPeriodicTask( void )
 {
-  uint8 valueToCopy;
-  uint8 stat;
-
-  //debug: nothing to do now
-  // Call to retrieve the value of the third characteristic in the profile
-  //stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
-
-  if( stat == SUCCESS )
-  {
-    /*
-     * Call to set that value of the fourth characteristic in the profile. Note
-     * that if notifications of the fourth characteristic have been enabled by
-     * a GATT client device, then a notification will be sent every time this
-     * function is called.
-     */
-    //SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
-  }
+  //do nothing
 }
 
 /*********************************************************************

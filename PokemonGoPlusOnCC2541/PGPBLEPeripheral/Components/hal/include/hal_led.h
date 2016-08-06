@@ -71,6 +71,7 @@ extern "C"
 #define HAL_LED_2_BLUE     0x02
 #define HAL_LED_3_GREEN     0x04
 #define HAL_LED_ALL   (HAL_LED_1_RED | HAL_LED_2_BLUE | HAL_LED_3_GREEN)
+#define HAL_LED_EXCEPT_BLUE   (HAL_LED_1_RED | HAL_LED_3_GREEN)
 
 /* Modes */
 #define HAL_LED_MODE_OFF     0x00
