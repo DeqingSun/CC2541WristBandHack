@@ -156,6 +156,11 @@ void HalDriverInit (void)
 #if (defined HAL_SPI) && (HAL_SPI == TRUE)
   HalSpiInit();
 #endif
+  
+  /* Buzzer */
+#if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
+  HalBuzzerInit();
+#endif
 
   /* HID */
 #if (defined HAL_HID) && (HAL_HID == TRUE)

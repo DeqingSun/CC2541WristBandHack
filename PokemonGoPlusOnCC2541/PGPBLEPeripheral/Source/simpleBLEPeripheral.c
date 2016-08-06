@@ -59,6 +59,7 @@
 #include "hal_led.h"
 #include "hal_key.h"
 #include "hal_uart.h"
+#include "hal_buzzer.h"
 
 #if (defined HAL_UART) && (HAL_UART == TRUE)
 #include <stdio.h>
@@ -222,7 +223,8 @@ static void pgpCertificateChangeCB( uint8 paramID );
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
 static void pokemonGoPlusBattPeriodicTask( void );
 static void pokemonGoPlusBattCB(uint8 event);
-
+static void simpleBLEPeripheralBuzzerRing( uint16 timeout, uint8 tone );
+static void simpleBLEPeripheralBuzzerCompleteCback( void );
 
 /*********************************************************************
  * PROFILE CALLBACKS
@@ -396,13 +398,13 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   #endif
   
   //But if DMA_PM=1 (When power saving), CTS is used. On test board there is a jumper
-  P2SEL = 0|(0x40); // Configure Port 2 as GPIO, Give USART1 Priority
+  P2SEL = 0|(0x60); // Configure Port 2 as GPIO, Give USART1 Priority over USART0, Timer 3 over USART1.
   
   P0DIR|=BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
   P0&=~(BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7));
 
-  P1DIR|=BV(2)|BV(3)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
-  P1&=~(BV(2)|BV(3)|BV(5)|BV(6)|BV(7));
+  P1DIR|=BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
+  P1&=~(BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7));
 
   // Register callback with SimpleGATTprofile
   VOID PgpDeviceControl_RegisterAppCBs( &simpleBLEPeripheral_PgpDeviceControlCBs );
@@ -572,6 +574,9 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
           uint8 new_adv_enabled_status=true;
           GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &new_adv_enabled_status );
         }
+      }
+      { //test buzzer
+        simpleBLEPeripheralBuzzerRing( 500, HAL_BUZZER_HIGH_TONE );
       }
     }
   }
@@ -928,6 +933,25 @@ static void pgpCertificateChangeCB( uint8 paramID )
   }
 }
 
+static void simpleBLEPeripheralBuzzerRing( uint16 timeout, uint8 tone )
+{
+  /* Provide feedback that calibration is complete */
+#if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
+  /* Tell OSAL to not go to sleep because buzzer uses T3 */
+  osal_pwrmgr_device( PWRMGR_ALWAYS_ON );
+
+  /* Ring buzzer */
+  HalBuzzerRing( timeout, tone, simpleBLEPeripheralBuzzerCompleteCback );
+#endif
+}
+
+static void simpleBLEPeripheralBuzzerCompleteCback( void )
+{
+#if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
+  /* Tell OSAL it's OK to go to sleep */
+  osal_pwrmgr_device( /*PWRMGR_ALWAYS_ON*/ PWRMGR_BATTERY );
+#endif
+}
 
 /*********************************************************************
 *********************************************************************/

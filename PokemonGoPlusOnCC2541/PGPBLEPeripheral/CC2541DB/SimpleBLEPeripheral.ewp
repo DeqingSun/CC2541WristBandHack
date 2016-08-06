@@ -304,6 +304,7 @@
           <state>HAL_LED=TRUE</state>
           <state>HAL_KEY=TRUE</state>
           <state>HAL_UART=FALSE</state>
+          <state>HAL_BUZZER=TRUE</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -5790,6 +5791,9 @@
             <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_aes.c</name>
           </file>
           <file>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_buzzer.c</name>
+          </file>
+          <file>
             <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_crc.c</name>
           </file>
           <file>
@@ -5821,6 +5825,9 @@
           <name>Includes</name>
           <file>
             <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_aes.h</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_buzzer.h</name>
           </file>
           <file>
             <name>$PROJ_DIR$\..\Components\hal\target\CC2540EB\hal_ccm.h</name>
