@@ -223,7 +223,7 @@ static void pgpCertificateChangeCB( uint8 paramID );
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
 static void pokemonGoPlusBattPeriodicTask( void );
 static void pokemonGoPlusBattCB(uint8 event);
-static void simpleBLEPeripheralBuzzerRing( uint16 timeout, uint8 tone );
+static void simpleBLEPeripheralBuzzerRing(uint8 *melody,uint8 len);
 static void simpleBLEPeripheralBuzzerCompleteCback( void );
 
 /*********************************************************************
@@ -292,7 +292,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // being discoverable for 30.72 second, and will not being advertising again
     // until the enabler is set back to TRUE
     uint16 gapRole_AdvertOffTime = 0;
-    uint16 tgap_LimitAdvertTimeout = 30/1;        //unit in seconds
+    uint16 tgap_LimitAdvertTimeout = 30/5;        //unit in seconds
 
     uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
     uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
@@ -576,7 +576,12 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
         }
       }
       { //test buzzer
-        simpleBLEPeripheralBuzzerRing( 500, HAL_BUZZER_HIGH_TONE );
+        //tone,duration(25ms).....
+        uint8 melody[]={
+          HAL_BUZZER_TONE_C6,5,HAL_BUZZER_TONE_D6,5,HAL_BUZZER_TONE_E6,5,HAL_BUZZER_TONE_F6,5,HAL_BUZZER_TONE_G6,5,
+          HAL_BUZZER_TONE_A6,5,HAL_BUZZER_TONE_B6,5,HAL_BUZZER_TONE_C7,5
+        };
+        simpleBLEPeripheralBuzzerRing( melody, 16 );
       }
     }
   }
@@ -933,15 +938,17 @@ static void pgpCertificateChangeCB( uint8 paramID )
   }
 }
 
-static void simpleBLEPeripheralBuzzerRing( uint16 timeout, uint8 tone )
+static void simpleBLEPeripheralBuzzerRing(uint8 *melody,uint8 len)
 {
   /* Provide feedback that calibration is complete */
 #if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
   /* Tell OSAL to not go to sleep because buzzer uses T3 */
+#if defined ( POWER_SAVING )
   osal_pwrmgr_device( PWRMGR_ALWAYS_ON );
-
+#endif
   /* Ring buzzer */
-  HalBuzzerRing( timeout, tone, simpleBLEPeripheralBuzzerCompleteCback );
+  HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_DISABLE_CLK_DIVIDE_ON_HALT );
+  HalBuzzerPlay( melody, len , simpleBLEPeripheralBuzzerCompleteCback );
 #endif
 }
 
@@ -949,7 +956,10 @@ static void simpleBLEPeripheralBuzzerCompleteCback( void )
 {
 #if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
   /* Tell OSAL it's OK to go to sleep */
+#if defined ( POWER_SAVING )
   osal_pwrmgr_device( /*PWRMGR_ALWAYS_ON*/ PWRMGR_BATTERY );
+#endif
+  HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_ENABLE_CLK_DIVIDE_ON_HALT );
 #endif
 }
 

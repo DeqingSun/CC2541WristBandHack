@@ -203,7 +203,7 @@ uint16 Hal_ProcessEvent( uint8 task_id, uint16 events )
 #if (defined HAL_BUZZER) && (HAL_BUZZER == TRUE)
   if (events & HAL_BUZZER_EVENT)
   {
-    HalBuzzerStop();
+    HalBuzzerTone();
     return events ^ HAL_BUZZER_EVENT;
   }
 #endif

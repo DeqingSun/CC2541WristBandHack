@@ -62,9 +62,31 @@ extern "C" {
  *                                          Constants
  * ------------------------------------------------------------------------------------------------
  */
-#define HAL_BUZZER_LOW_TONE     0
-#define HAL_BUZZER_HIGH_TONE    1
-
+#define HAL_BUZZER_TONE_NONE    0
+//#define HAL_BUZZER_TONE_C4      1
+//#define HAL_BUZZER_TONE_D4      2
+//#define HAL_BUZZER_TONE_E4      3
+//#define HAL_BUZZER_TONE_F4      4
+//#define HAL_BUZZER_TONE_G4      5
+//#define HAL_BUZZER_TONE_A4      6
+//T3 frequency starts 488Hz
+#define HAL_BUZZER_TONE_B4      7       
+#define HAL_BUZZER_TONE_C5      8
+#define HAL_BUZZER_TONE_D5      9
+#define HAL_BUZZER_TONE_E5     10
+#define HAL_BUZZER_TONE_F5     11
+#define HAL_BUZZER_TONE_G5     12
+#define HAL_BUZZER_TONE_A5     13
+#define HAL_BUZZER_TONE_B5     14
+#define HAL_BUZZER_TONE_C6     15
+#define HAL_BUZZER_TONE_D6     16
+#define HAL_BUZZER_TONE_E6     17
+#define HAL_BUZZER_TONE_F6     18
+#define HAL_BUZZER_TONE_G6     19
+#define HAL_BUZZER_TONE_A6     20
+#define HAL_BUZZER_TONE_B6     21
+#define HAL_BUZZER_TONE_C7     22
+   
 /* ------------------------------------------------------------------------------------------------
  *                                           Typedefs
  * ------------------------------------------------------------------------------------------------
@@ -94,6 +116,8 @@ typedef void (*halBuzzerCBack_t) (void);
  */
 void HalBuzzerInit( void );
 
+void HalBuzzerPlay(uint8 *melody,uint8 len,halBuzzerCBack_t buzzerCback);
+
 /**************************************************************************************************
  * @fn          HalBuzzerRing
  *
@@ -112,8 +136,7 @@ void HalBuzzerInit( void );
  * @return      None.
  */
 void HalBuzzerRing( uint16 msec,
-                    uint8 tone,
-                    halBuzzerCBack_t buzzerCback );
+                    uint8 tone);
 
 /**************************************************************************************************
  * @fn      HalBuzzerStop
@@ -124,6 +147,8 @@ void HalBuzzerRing( uint16 msec,
  *
  * @return  None
  **************************************************************************************************/
+void HalBuzzerTone( void );
+
 void HalBuzzerStop( void );
 
 #ifdef __cplusplus
