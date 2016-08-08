@@ -74,5 +74,7 @@
 
 @echo off
 chdir %1\..\..\common\cc2540
+:: must add directory change (Z:) if IAR installation drive is different than the project's drive
+Z:
 start cc254x_ubl_pp.js %2 %3 %4 %5
 

@@ -1443,9 +1443,11 @@
           <state>HAL_DMA=TRUE</state>
           <state>POWER_SAVING</state>
           <state>xPLUS_BROADCASTER</state>
-          <state>HAL_LCD=TRUE</state>
-          <state>HAL_LED=FALSE</state>
+          <state>HAL_LCD=FALSE</state>
+          <state>HAL_LED=TRUE</state>
           <state>HAL_KEY=TRUE</state>
+          <state>HAL_UART=FALSE</state>
+          <state>HAL_BUZZER=TRUE</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1636,11 +1638,12 @@
           <state>$PROJ_DIR$\..\common\npi\npi_np</state>
           <state>$PROJ_DIR$\..\Profiles\Roles\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Roles</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile</state>
+          <state>$PROJ_DIR$\..\Profiles\PokemonGoPlus</state>
           <state>$PROJ_DIR$\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\Profiles\Keys\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Keys</state>
+          <state>$PROJ_DIR$\..\Profiles\Batt\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\OAD</state>
         </option>
         <option>
@@ -2584,9 +2587,11 @@
           <state>HAL_DMA=TRUE</state>
           <state>POWER_SAVING</state>
           <state>xPLUS_BROADCASTER</state>
-          <state>HAL_LCD=TRUE</state>
-          <state>HAL_LED=FALSE</state>
+          <state>HAL_LCD=FALSE</state>
+          <state>HAL_LED=TRUE</state>
           <state>HAL_KEY=TRUE</state>
+          <state>HAL_UART=FALSE</state>
+          <state>HAL_BUZZER=TRUE</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -2777,11 +2782,12 @@
           <state>$PROJ_DIR$\..\common\npi\npi_np</state>
           <state>$PROJ_DIR$\..\Profiles\Roles\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Roles</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile\CC254x</state>
-          <state>$PROJ_DIR$\..\Profiles\SimpleProfile</state>
+          <state>$PROJ_DIR$\..\Profiles\PokemonGoPlus</state>
           <state>$PROJ_DIR$\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\Profiles\Keys\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\Keys</state>
+          <state>$PROJ_DIR$\..\Profiles\Batt\CC254x</state>
+          <state>$PROJ_DIR$\..\Profiles\HIDDev\CC254x</state>
           <state>$PROJ_DIR$\..\Profiles\OAD</state>
         </option>
         <option>
