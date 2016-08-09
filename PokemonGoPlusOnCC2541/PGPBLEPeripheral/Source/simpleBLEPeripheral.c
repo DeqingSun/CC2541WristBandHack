@@ -292,7 +292,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // being discoverable for 30.72 second, and will not being advertising again
     // until the enabler is set back to TRUE
     uint16 gapRole_AdvertOffTime = 0;
-    uint16 tgap_LimitAdvertTimeout = 30/5;        //unit in seconds
+    uint16 tgap_LimitAdvertTimeout = 30/1;        //unit in seconds
 
     uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
     uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
