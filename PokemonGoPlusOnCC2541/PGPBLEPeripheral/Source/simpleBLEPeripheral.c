@@ -384,7 +384,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   
   HalLedSet( (HAL_LED_1_RED | HAL_LED_2_BLUE), HAL_LED_MODE_OFF );
   
-  HalLedSet( (HAL_LED_1_RED ), HAL_LED_MODE_ON );
+  HalLedSet( (HAL_LED_1_RED ), HAL_LED_MODE_OFF );
   //HalLedSet( (HAL_LED_2_BLUE ), HAL_LED_MODE_ON );
   HalLedSet( (HAL_LED_3_GREEN ), HAL_LED_MODE_ON );
   
