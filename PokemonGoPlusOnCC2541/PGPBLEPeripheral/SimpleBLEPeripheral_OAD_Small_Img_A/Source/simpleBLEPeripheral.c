@@ -89,12 +89,6 @@
 
 
 
-
-
-
-// How often to perform periodic event
-#define SBP_PERIODIC_EVT_PERIOD                   5000
-
 // What is the advertising interval when device is discoverable (units of 625us, 160=100ms)
 #define DEFAULT_ADVERTISING_INTERVAL          160
 
@@ -228,17 +222,11 @@ static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "ARC BOOT";
  */
 static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg );
 static void peripheralStateNotificationCB( gaprole_States_t newState );
-static void performPeriodicTask( void );
-//static void simpleProfileChangeCB( uint8 paramID );
+
 
 #if defined( CC2540_MINIDK )
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys );
 #endif
-
-#if (defined HAL_LCD) && (HAL_LCD == TRUE)
-static char *bdAddr2Str ( uint8 *pAddr );
-#endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-
 
 
 /*********************************************************************
@@ -496,24 +484,11 @@ uint16 SimpleBLEPeripheral_ProcessEvent( uint8 task_id, uint16 events )
     //VOID GAPBondMgr_Register( &simpleBLEPeripheral_BondMgrCBs );
 
     // Set timer for first periodic event
-    osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
+    //osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
 
     return ( events ^ SBP_START_DEVICE_EVT );
   }
 
-  if ( events & SBP_PERIODIC_EVT )
-  {
-    // Restart timer
-    if ( SBP_PERIODIC_EVT_PERIOD )
-    {
-      osal_start_timerEx( simpleBLEPeripheral_TaskID, SBP_PERIODIC_EVT, SBP_PERIODIC_EVT_PERIOD );
-    }
-
-    // Perform periodic application task
-    performPeriodicTask();
-
-    return (events ^ SBP_PERIODIC_EVT);
-  }
 
 #if defined ( PLUS_BROADCASTER )
   if ( events & SBP_ADV_IN_CONNECTION_EVT )
@@ -651,59 +626,43 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
         //DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
 
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          // Display device address
-          HalLcdWriteString( bdAddr2Str( ownAddress ),  HAL_LCD_LINE_2 );
-          HalLcdWriteString( "Initialized",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     case GAPROLE_ADVERTISING:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "Advertising",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     case GAPROLE_CONNECTED:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "Connected",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     case GAPROLE_WAITING:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "Disconnected",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     case GAPROLE_WAITING_AFTER_TIMEOUT:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "Timed Out",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     case GAPROLE_ERROR:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "Error",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
     default:
       {
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          HalLcdWriteString( "",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+
       }
       break;
 
@@ -718,113 +677,5 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
 
 }
-
-/*********************************************************************
- * @fn      performPeriodicTask
- *
- * @brief   Perform a periodic application task. This function gets
- *          called every five seconds as a result of the SBP_PERIODIC_EVT
- *          OSAL event. In this example, the value of the third
- *          characteristic in the SimpleGATTProfile service is retrieved
- *          from the profile, and then copied into the value of the
- *          the fourth characteristic.
- *
- * @param   none
- *
- * @return  none
- */
-static void performPeriodicTask( void )
-{
-  uint8 valueToCopy;
-  uint8 stat;
-
-  // Call to retrieve the value of the third characteristic in the profile
- // stat = SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &valueToCopy);
-
-  if( stat == SUCCESS )
-  {
-    /*
-     * Call to set that value of the fourth characteristic in the profile. Note
-     * that if notifications of the fourth characteristic have been enabled by
-     * a GATT client device, then a notification will be sent every time this
-     * function is called.
-     */
-   // SimpleProfile_SetParameter( SIMPLEPROFILE_CHAR4, sizeof(uint8), &valueToCopy);
-  }
-}
-
-/*********************************************************************
- * @fn      simpleProfileChangeCB
- *
- * @brief   Callback from SimpleBLEProfile indicating a value change
- *
- * @param   paramID - parameter ID of the value that was changed.
- *
- * @return  none
- */
-static void simpleProfileChangeCB( uint8 paramID )
-{
-  uint8 newValue;
-
-  switch( paramID )
-  {
-    case SIMPLEPROFILE_CHAR1:
-      //SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR1, &newValue );
-
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        HalLcdWriteStringValue( "Char 1:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-
-      break;
-
-    case SIMPLEPROFILE_CHAR3:
-      //SimpleProfile_GetParameter( SIMPLEPROFILE_CHAR3, &newValue );
-
-      #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-        HalLcdWriteStringValue( "Char 3:", (uint16)(newValue), 10,  HAL_LCD_LINE_3 );
-      #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-
-      break;
-
-    default:
-      // should not reach here!
-      break;
-  }
-}
-
-#if (defined HAL_LCD) && (HAL_LCD == TRUE)
-/*********************************************************************
- * @fn      bdAddr2Str
- *
- * @brief   Convert Bluetooth address to string. Only needed when
- *          LCD display is used.
- *
- * @return  none
- */
-char *bdAddr2Str( uint8 *pAddr )
-{
-  uint8       i;
-  char        hex[] = "0123456789ABCDEF";
-  static char str[B_ADDR_STR_LEN];
-  char        *pStr = str;
-
-  *pStr++ = '0';
-  *pStr++ = 'x';
-
-  // Start from end of addr
-  pAddr += B_ADDR_LEN;
-
-  for ( i = B_ADDR_LEN; i > 0; i-- )
-  {
-    *pStr++ = hex[*--pAddr >> 4];
-    *pStr++ = hex[*pAddr & 0x0F];
-  }
-
-  *pStr = 0;
-
-  return str;
-}
-#endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
-
 /*********************************************************************
 *********************************************************************/

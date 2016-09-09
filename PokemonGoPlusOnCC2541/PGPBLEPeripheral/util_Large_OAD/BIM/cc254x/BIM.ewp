@@ -10,23 +10,11 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>1</archiveVersion>
+      <archiveVersion>3</archiveVersion>
       <data>
-        <version>5</version>
+        <version>8</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
-        <option>
-          <name>DerivativeDescriptionFile</name>
-          <state>$TOOLKIT_DIR$\config\devices\Texas Instruments\CC2540F256.i51</state>
-        </option>
-        <option>
-          <name>Previous Derivative File</name>
-          <state>$TOOLKIT_DIR$\config\devices\Texas Instruments\CC2540F256.i51</state>
-        </option>
-        <option>
-          <name>Showed Derivative</name>
-          <state>CC2540F256</state>
-        </option>
         <option>
           <name>CPU Core</name>
           <version>1</version>
@@ -154,8 +142,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>0</version>
-          <state>1</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Input description</name>
@@ -163,8 +151,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>0</version>
-          <state>1</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Output description</name>
@@ -250,13 +238,53 @@
           <version>0</version>
           <state>3</state>
         </option>
+        <option>
+          <name>Extended stack address</name>
+          <state>0x9B</state>
+        </option>
+        <option>
+          <name>Extended stack mask</name>
+          <state>0x03</state>
+        </option>
+        <option>
+          <name>Extended stack is offset</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>OGChipSelectMenu</name>
+          <state>CC2540F256	CC2540F256</state>
+        </option>
+        <option>
+          <name>OGChipSelectMenuSlave</name>
+          <state>CC2540F256	CC2540F256</state>
+        </option>
+        <option>
+          <name>DPC Address</name>
+          <state></state>
+        </option>
+        <option>
+          <name>AutoModificationType</name>
+          <state></state>
+        </option>
+        <option>
+          <name>UseHWMulDivUnit</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>UseMDU</name>
+          <state></state>
+        </option>
+        <option>
+          <name>AdditionalDriver</name>
+          <state></state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICC8051</name>
-      <archiveVersion>4</archiveVersion>
+      <archiveVersion>6</archiveVersion>
       <data>
-        <version>9</version>
+        <version>11</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -440,9 +468,9 @@
         <option>
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$\..\app</state>
-          <state>$PROJ_DIR$\..\..\..\..\..\Components\hal\include</state>
-          <state>$PROJ_DIR$\..\..\..\..\..\Components\hal\target\CC2540EB</state>
-          <state>$PROJ_DIR$\..\..\..\..\..\Components\osal\include</state>
+          <state>$PROJ_DIR$\..\..\..\Components\hal\include</state>
+          <state>$PROJ_DIR$\..\..\..\Components\hal\target\CC2540EB</state>
+          <state>$PROJ_DIR$\..\..\..\Components\osal\include</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -500,8 +528,24 @@
           <state>1</state>
         </option>
         <option>
-          <name>IccRelaxedFpPrecision</name>
+          <name>IccCppInlineSemantics</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>IccStaticDestr</name>
+          <state>1</state>
+        </option>
+        <option>
+          <name>IccFloatSemantics</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>NoSizeConstraints</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>UseHWMulDivUnit</name>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -509,7 +553,7 @@
       <name>A8051</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>5</version>
+        <version>6</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -580,10 +624,6 @@
         <option>
           <name>MultiLine</name>
           <state>0</state>
-        </option>
-        <option>
-          <name>NoStruct</name>
-          <state>1</state>
         </option>
         <option>
           <name>PageLengthCheck</name>
@@ -669,6 +709,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -686,9 +727,9 @@
     </settings>
     <settings>
       <name>XLINK</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>17</version>
+        <version>21</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -1003,6 +1044,35 @@
           <name>Linker Far22 Heap Size</name>
           <state>1</state>
         </option>
+        <option>
+          <name>CrcUnitSize</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XLink DPC Address</name>
+          <state>1</state>
+        </option>
+        <option>
+          <name>XlinkLogEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogInputFiles</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogModuleSelection</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogPrintfScanf</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>XlinkLogSegmentSelection</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -1031,6 +1101,11 @@
       </data>
     </settings>
     <settings>
+      <name>HWMUL</name>
+      <archiveVersion>0</archiveVersion>
+      <data/>
+    </settings>
+    <settings>
       <name>BILINK</name>
       <archiveVersion>0</archiveVersion>
       <data/>
@@ -1048,10 +1123,10 @@
   <group>
     <name>HAL</name>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\..\Components\hal\target\CC2540EB\hal_flash.c</name>
+      <name>$PROJ_DIR$\..\..\..\Components\hal\target\CC2540EB\hal_flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\..\Components\hal\include\hal_flash.h</name>
+      <name>$PROJ_DIR$\..\..\..\Components\hal\include\hal_flash.h</name>
     </file>
   </group>
 </project>

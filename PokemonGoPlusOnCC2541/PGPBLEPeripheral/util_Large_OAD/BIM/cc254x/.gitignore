@@ -1,0 +1,7 @@
+CC254xF256
+
+settings
+
+*.dep
+*.ewt
+*.tmp
