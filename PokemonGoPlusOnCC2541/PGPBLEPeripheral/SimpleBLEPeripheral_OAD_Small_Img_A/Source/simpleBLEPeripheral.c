@@ -58,10 +58,6 @@
 #include "gattservapp.h"
 #include "devinfoservice.h"
 
-#if defined( CC2540_MINIDK )
-  #include "simplekeys.h"
-#endif
-
 #if defined ( PLUS_BROADCASTER )
   #include "peripheralBroadcaster.h"
 #else
@@ -264,6 +260,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // being discoverable for 30.72 second, and will not being advertising again
     // until the enabler is set back to TRUE
     uint16 gapRole_AdvertOffTime = 0;
+    uint16 tgap_LimitAdvertTimeout = 30/1;        //unit in seconds
 
     uint8 enable_update_request = DEFAULT_ENABLE_UPDATE_REQUEST;
     uint16 desired_min_interval = DEFAULT_DESIRED_MIN_CONN_INTERVAL;
@@ -274,6 +271,8 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
     // Set the GAP Role Parameters
     GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &initial_advertising_enable );
     GAPRole_SetParameter( GAPROLE_ADVERT_OFF_TIME, sizeof( uint16 ), &gapRole_AdvertOffTime );
+    
+    GAP_SetParamValue( TGAP_LIM_ADV_TIMEOUT, tgap_LimitAdvertTimeout ); //set timeout time
 
     GAPRole_SetParameter( GAPROLE_SCAN_RSP_DATA, sizeof ( scanRspData ), scanRspData );
     GAPRole_SetParameter( GAPROLE_ADVERT_DATA, sizeof( advertData ), advertData );
@@ -348,46 +347,31 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
 
 #if defined( CC2540_MINIDK )
 
-  SK_AddService( GATT_ALL_SERVICES ); // Simple Keys Profile
-
   // Register for all key events - This app will handle all key events
   RegisterForKeys( simpleBLEPeripheral_TaskID );
 
   // makes sure LEDs are off
-  HalLedSet( (HAL_LED_1 | HAL_LED_2), HAL_LED_MODE_OFF );
+  //HalLedSet( (HAL_LED_1 | HAL_LED_2), HAL_LED_MODE_OFF );
 
   // For keyfob board set GPIO pins into a power-optimized state
   // Note that there is still some leakage current from the buzzer,
   // accelerometer, LEDs, and buttons on the PCB.
 
   P0SEL = 0; // Configure Port 0 as GPIO
-  P1SEL = 0; // Configure Port 1 as GPIO
-  P2SEL = 0; // Configure Port 2 as GPIO
+  P1SEL = 0;
+  P2SEL = 0|(0x60); // Configure Port 2 as GPIO, Give USART1 Priority over USART0, Timer 3 over USART1.
+  
+  P0DIR|=BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7);    //OUTPUT GND to minimize power
+  P0&=~(BV(0)|BV(2)|BV(3)|BV(4)|BV(5)|BV(6)|BV(7));
 
-  P0DIR = 0xFC; // Port 0 pins P0.0 and P0.1 as input (buttons),
-                // all others (P0.2-P0.7) as output
-  P1DIR = 0xFF; // All port 1 pins (P1.0-P1.7) as output
-  P2DIR = 0x1F; // All port 1 pins (P2.0-P2.4) as output
-
-  P0 = 0x03; // All pins on port 0 to low except for P0.0 and P0.1 (buttons)
-  P1 = 0;   // All pins on port 1 to low
-  P2 = 0;   // All pins on port 2 to low
-
+  P1DIR=0xFF;    //OUTPUT GND to minimize power
+  P1=0;
+  
+  P2DIR = 0x1F; // All port 2 pins (P2.0-P2.4) as output
+  P2=0;  
+  
 #endif // #if defined( CC2540_MINIDK )
 
-#if (defined HAL_LCD) && (HAL_LCD == TRUE)
-
-#if defined FEATURE_OAD
-  #if defined (HAL_IMAGE_A)
-    HalLcdWriteStringValue( "BLE Peri-A", OAD_VER_NUM( _imgHdr.ver ), 16, HAL_LCD_LINE_1 );
-  #else
-    HalLcdWriteStringValue( "BLE Peri-B", OAD_VER_NUM( _imgHdr.ver ), 16, HAL_LCD_LINE_1 );
-  #endif // HAL_IMAGE_A
-#else
-  HalLcdWriteString( "BLE Peripheral", HAL_LCD_LINE_1 );
-#endif // FEATURE_OAD
-
-#endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
 
   // Register callback with SimpleGATTprofile
   //VOID SimpleProfile_RegisterAppCBs( &simpleBLEPeripheral_SimpleProfileCBs );
@@ -406,11 +390,6 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
 
   // Setup a delayed profile startup
   osal_set_event( simpleBLEPeripheral_TaskID, SBP_START_DEVICE_EVT );
-  
-  
-  
-  
-
 }
 
 /*********************************************************************
@@ -517,48 +496,16 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
  */
 static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
 {
-  uint8 SK_Keys = 0;
-
   VOID shift;  // Intentionally unreferenced parameter
 
-  if ( keys & HAL_KEY_SW_1 )
-  {
-    SK_Keys |= SK_KEY_LEFT;
-  }
-
-  if ( keys & HAL_KEY_SW_2 )
-  {
-
-    SK_Keys |= SK_KEY_RIGHT;
-
-    // if device is not in a connection, pressing the right key should toggle
-    // advertising on and off
-    if( gapProfileState != GAPROLE_CONNECTED )
-    {
-      uint8 current_adv_enabled_status;
-      uint8 new_adv_enabled_status;
-
-      //Find the current GAP advertisement status
-      GAPRole_GetParameter( GAPROLE_ADVERT_ENABLED, &current_adv_enabled_status );
-
-      if( current_adv_enabled_status == FALSE )
-      {
-        new_adv_enabled_status = TRUE;
-      }
-      else
-      {
-        new_adv_enabled_status = FALSE;
-      }
-
-      //change the GAP advertisement status to opposite of current status
+  if (keys & HAL_PUSH_BUTTON){
+    uint8 current_adv_enabled_status;
+    GAPRole_GetParameter( GAPROLE_ADVERT_ENABLED, &current_adv_enabled_status );
+    if (!current_adv_enabled_status){
+      uint8 new_adv_enabled_status=true;
       GAPRole_SetParameter( GAPROLE_ADVERT_ENABLED, sizeof( uint8 ), &new_adv_enabled_status );
     }
-
   }
-
-  // Set the value of the keys state to the Simple Keys Profile;
-  // This will send out a notification of the keys state if enabled
-  SK_SetParameter( SK_KEY_ATTR, sizeof ( uint8 ), &SK_Keys );
 }
 #endif // #if defined( CC2540_MINIDK )
 
@@ -604,19 +551,22 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
     case GAPROLE_ADVERTISING:
       {
-
+        P1|=(1<<1);
+        P1&=~(1<<0);
       }
       break;
 
     case GAPROLE_CONNECTED:
       {
-
+        P1|=(1<<1);
+        P1|=(1<<0);
       }
       break;
 
     case GAPROLE_WAITING:
       {
-
+        P1&=~(1<<1);
+        P1&=~(1<<0);
       }
       break;
 
