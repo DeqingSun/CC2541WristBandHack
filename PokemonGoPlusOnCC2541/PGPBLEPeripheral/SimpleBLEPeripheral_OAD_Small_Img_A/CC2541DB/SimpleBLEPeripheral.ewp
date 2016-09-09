@@ -306,6 +306,9 @@
           <state>xPLUS_BROADCASTER</state>
           <state>HAL_LCD=FALSE</state>
           <state>HAL_LED=FALSE</state>
+          <state>HAL_KEY=TRUE</state>
+          <state>HAL_UART=FALSE</state>
+          <state>HAL_ADC=FALSE</state>
           <state>CC2540_MINIDK</state>
           <state>OAD_IMG_A_PAGE=1</state>
           <state>OAD_IMG_A_AREA=47</state>
@@ -1223,9 +1226,6 @@
         <group>
           <name>Drivers</name>
           <file>
-            <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_adc.c</name>
-          </file>
-          <file>
             <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_aes.c</name>
           </file>
           <file>
@@ -1241,12 +1241,6 @@
             <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_key.c</name>
           </file>
           <file>
-            <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_lcd.c</name>
-          </file>
-          <file>
-            <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_led.c</name>
-          </file>
-          <file>
             <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_sleep.c</name>
           </file>
           <file>
@@ -1254,9 +1248,6 @@
           </file>
           <file>
             <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_timer.c</name>
-          </file>
-          <file>
-            <name>$PROJ_DIR$\..\..\Components\hal\target\CC2540EB\hal_uart.c</name>
           </file>
         </group>
         <group>

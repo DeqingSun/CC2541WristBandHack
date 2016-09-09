@@ -372,7 +372,9 @@ void halSleep( uint32 osal_timeout )
       HAL_TURN_OFF_LED3();
 #else
       // use this to turn LEDs off during sleep
+#if (defined HAL_LED) && (HAL_LED == TRUE)
       HalLedEnterSleep();
+#endif //(defined HAL_LED) && (HAL_LED == TRUE)
 #endif // HAL_SLEEP_DEBUG_LED
 
       // enable sleep timer interrupt
@@ -442,7 +444,9 @@ void halSleep( uint32 osal_timeout )
       HAL_TURN_ON_LED3();
 #else //!HAL_SLEEP_DEBUG_LED
       // use this to turn LEDs back on after sleep
+#if (defined HAL_LED) && (HAL_LED == TRUE)
       HalLedExitSleep();
+#endif //(defined HAL_LED) && (HAL_LED == TRUE)
 #endif // HAL_SLEEP_DEBUG_LED
 
 #if ((defined HAL_KEY) && (HAL_KEY == TRUE))

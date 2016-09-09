@@ -122,7 +122,9 @@ void InitBoard( uint8 level )
     // Interrupts off
     osal_int_disable( INTS_ALL );
     // Turn all LEDs off
+#if (defined HAL_LED) && (HAL_LED == TRUE)
     HalLedSet( HAL_LED_ALL, HAL_LED_MODE_OFF );
+#endif //(defined HAL_LED) && (HAL_LED == TRUE)
     // Check for Brown-Out reset
 //    ChkReset();
   }
