@@ -49,7 +49,6 @@
 #include "hal_adc.h"
 #include "hal_led.h"
 #include "hal_key.h"
-#include "hal_lcd.h"
 
 #include "gatt.h"
 
@@ -58,7 +57,6 @@
 #include "gapgattserver.h"
 #include "gattservapp.h"
 #include "devinfoservice.h"
-#include "simpleGATTprofile.h"
 
 #if defined( CC2540_MINIDK )
   #include "simplekeys.h"
@@ -158,27 +156,9 @@ static gaprole_States_t gapProfileState = GAPROLE_INIT;
 static uint8 scanRspData[] =
 {
   // complete name
-  0x14,   // length of this data
+  0x07,   // length of this data
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  0x53,   // 'A'
-  0x69,   // 'R'
-  0x6d,   // 'C'
-  0x70,   // ' '
-  0x6c,   // 'B'
-  0x65,   // 'O'
-  0x42,   // 'O'
-  0x4c,   // 'T'
-  0x45,   // ' '
-  0x50,   // ' '
-  0x65,   // ' '
-  0x72,   // ' '
-  0x69,   // ' '
-  0x70,   // ' '
-  0x68,   // ' '
-  0x65,   // ' '
-  0x72,   // ' '
-  0x61,   // ' '
-  0x6c,   // ' '
+  0x4F, 0x41, 0x44, 0x20, 0x46, 0x57,
 
   // connection interval range
   0x05,   // length of this data
@@ -204,18 +184,10 @@ static uint8 advertData[] =
   0x02,   // length of this data
   GAP_ADTYPE_FLAGS,
   DEFAULT_DISCOVERABLE_MODE | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
-
-  // service UUID, to notify central devices what services are included
-  // in this peripheral
-  0x03,   // length of this data
-  GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
-  LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
-  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),
-
 };
 
 // GAP GATT Attributes
-static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "ARC BOOT";
+static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "OAD FW";
 
 /*********************************************************************
  * LOCAL FUNCTIONS

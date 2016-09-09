@@ -499,7 +499,6 @@
           <state>$PROJ_DIR$\..\..\common\npi\npi_np</state>
           <state>$PROJ_DIR$\..\..\Profiles\Roles</state>
           <state>$PROJ_DIR$\..\..\Profiles\Roles\CC254x</state>
-          <state>$PROJ_DIR$\..\..\Profiles\SimpleProfile</state>
           <state>$PROJ_DIR$\..\..\Profiles\DevInfo</state>
           <state>$PROJ_DIR$\..\..\Profiles\OAD</state>
         </option>
@@ -1434,15 +1433,6 @@
       <excluded>
         <configuration>CC2541-OAD-ImgA</configuration>
       </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\Profiles\SimpleProfile\CC254x\simpleGATTprofile.c</name>
-      <excluded>
-        <configuration>CC2541-OAD-ImgA</configuration>
-      </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\Profiles\SimpleProfile\simpleGATTprofile.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\Profiles\Keys\simplekeys.c</name>
