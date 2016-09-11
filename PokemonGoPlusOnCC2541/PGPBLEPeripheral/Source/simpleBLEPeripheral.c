@@ -690,6 +690,9 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
       {
         //Called when ADVERTISING Starts
         HalLedBlink( HAL_LED_2_BLUE, 0, 5, 2000 );
+        #if (defined HAL_UART) && (HAL_UART == TRUE)
+          HalUARTWrite ( HAL_UART_PORT_1, "GAPROLE_ADVERTISING\n", 20 );
+        #endif
       }
       break;
 
@@ -716,6 +719,9 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
     case GAPROLE_CONNECTED:
       {        
         HalLedBlink( HAL_LED_2_BLUE, 0, 2, 5000 );
+        #if (defined HAL_UART) && (HAL_UART == TRUE)
+          HalUARTWrite ( HAL_UART_PORT_1, "GAPROLE_CONNECTED\n", 18 );
+        #endif
           
 #ifdef PLUS_BROADCASTER
         // Only turn advertising on for this state when we first connect
@@ -753,6 +759,9 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
       {
         //Called when ADVERTISING Ends
         HalLedSet(HAL_LED_2_BLUE, HAL_LED_MODE_OFF );
+        #if (defined HAL_UART) && (HAL_UART == TRUE)
+          HalUARTWrite ( HAL_UART_PORT_1, "GAPROLE_WAITING\n", 16 );
+        #endif
           
 #ifdef PLUS_BROADCASTER                
         uint8 advertEnabled = TRUE;

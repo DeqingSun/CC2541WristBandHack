@@ -62,6 +62,12 @@
 
 #include "pgpCertificate.h"
 
+#if (defined HAL_UART) && (HAL_UART == TRUE)
+#include <stdio.h>
+#include <stdlib.h>
+#include "hal_uart.h"
+#endif
+
 /*********************************************************************
  * MACROS
  */
@@ -443,6 +449,10 @@ static bStatus_t pgpCertificate_ReadAttrCB( uint16 connHandle, gattAttribute_t *
 {
   uint16 uuid;
   bStatus_t status = SUCCESS;
+  
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    HalUARTWrite ( HAL_UART_PORT_1, "pgpCertificate_ReadAttrCB\n", 26 );
+  #endif
 
   // If attribute permissions require authorization to read, return error
   if ( gattPermitAuthorRead( pAttr->permissions ) )
@@ -463,7 +473,16 @@ static bStatus_t pgpCertificate_ReadAttrCB( uint16 connHandle, gattAttribute_t *
     *pLen = 0;                                                                          
     return ATT_ERR_INVALID_HANDLE;                                                      
   }                                                                                     
-                                                                                        
+  
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+  {
+    char buf[32];
+    sprintf(buf,"UUID: %04X\n",uuid);
+    uint8 strLength=strlen(buf);
+    HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+  }
+  #endif
+  
   switch ( uuid )                                                                       
   {                                                                                     
     // No need for "GATT_SERVICE_UUID" or "GATT_CLIENT_CHAR_CFG_UUID" cases;            
@@ -510,6 +529,10 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
   uint8 notifyApp = 0xFF;
   uint16 uuid; 
   
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    HalUARTWrite ( HAL_UART_PORT_1, "pgpCertificate_WriteAttrCB\n", 26 );
+  #endif
+  
   // If attribute permissions require authorization to write, return error
   if ( gattPermitAuthorWrite( pAttr->permissions ) )
   {
@@ -522,6 +545,14 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
     return ATT_ERR_INVALID_HANDLE;                                                       
   }      
   
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+  {
+    char buf[32];
+    sprintf(buf,"UUID: %04X\n",uuid);
+    uint8 strLength=strlen(buf);
+    HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+  }
+  #endif  
  
   switch ( uuid )
   {

@@ -62,6 +62,12 @@
 
 #include "pgpDeviceControl.h"
 
+#if (defined HAL_UART) && (HAL_UART == TRUE)
+#include <stdio.h>
+#include <stdlib.h>
+#include "hal_uart.h"
+#endif
+
 /*********************************************************************
  * MACROS
  */
@@ -543,6 +549,10 @@ static bStatus_t pgpDeviceControl_ReadAttrCB( uint16 connHandle, gattAttribute_t
 {
   uint16 uuid;
   bStatus_t status = SUCCESS;
+  
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    HalUARTWrite ( HAL_UART_PORT_1, "pgpDeviceControl_ReadAttrCB\n", 28 );
+  #endif
 
   // If attribute permissions require authorization to read, return error
   if ( gattPermitAuthorRead( pAttr->permissions ) )
@@ -562,7 +572,16 @@ static bStatus_t pgpDeviceControl_ReadAttrCB( uint16 connHandle, gattAttribute_t
     // Invalid handle                                                                   
     *pLen = 0;                                                                          
     return ATT_ERR_INVALID_HANDLE;                                                      
-  }                                                                                     
+  }
+  
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+  {
+    char buf[32];
+    sprintf(buf,"UUID: %04X\n",uuid);
+    uint8 strLength=strlen(buf);
+    HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+  }
+  #endif
                                                                                         
   switch ( uuid )                                                                       
   {                                                                                     
@@ -611,6 +630,10 @@ static bStatus_t pgpDeviceControl_WriteAttrCB( uint16 connHandle, gattAttribute_
   uint8 notifyApp = 0xFF;
   uint16 uuid; 
   
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+    HalUARTWrite ( HAL_UART_PORT_1, "pgpDeviceControl_ReadAttrCB\n", 29 );
+  #endif
+  
   // If attribute permissions require authorization to write, return error
   if ( gattPermitAuthorWrite( pAttr->permissions ) )
   {
@@ -621,8 +644,16 @@ static bStatus_t pgpDeviceControl_WriteAttrCB( uint16 connHandle, gattAttribute_
   if (utilExtractUuid16(pAttr,&uuid) == FAILURE) {                                       
     // Invalid handle                                                                    
     return ATT_ERR_INVALID_HANDLE;                                                       
-  }      
+  }   
   
+  #if (defined HAL_UART) && (HAL_UART == TRUE)
+  {
+    char buf[32];
+    sprintf(buf,"UUID: %04X\n",uuid);
+    uint8 strLength=strlen(buf);
+    HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+  }
+  #endif
  
   switch ( uuid )
   {
