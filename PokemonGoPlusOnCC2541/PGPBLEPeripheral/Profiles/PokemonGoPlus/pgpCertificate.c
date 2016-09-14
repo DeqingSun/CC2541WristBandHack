@@ -135,7 +135,7 @@ static uint8 centralToSfidaCharProps = GATT_PROP_READ | GATT_PROP_WRITE;
 
 // Central to SFIDA Value
 static uint8 centralToSfidaCharLen = 0;
-static uint8 centralToSfidaChar[16] = {0};                    
+static uint8 centralToSfidaChar[36] = {0};                    
 
 // Certificate Service Central to SFIDA User Description           
 static uint8 centralToSfidaCharUserDesp[] = "Central to Sfida\0";        
@@ -146,7 +146,7 @@ static uint8 sfidaCommandsCharProps = GATT_PROP_READ | GATT_PROP_WRITE | GATT_PR
 
 // Sfida commands Value
 static uint8 sfidaCommandsCharLen = 0;
-static uint8 sfidaCommandsChar[16] = {0};                   
+static uint8 sfidaCommandsChar[36] = {0};                   
 
 // Sfida commands Notif Configuration.                                       
 static gattCharCfg_t *sfidaCommandsCharConfig;        
@@ -160,7 +160,7 @@ static uint8 sfidaToCentralCharProps = GATT_PROP_READ | GATT_PROP_WRITE;
 
 // SFIDA to Central Value
 static uint8 sfidaToCentralCharLen = 0;
-static uint8 sfidaToCentralChar[16] = {0};                   
+static uint8 sfidaToCentralChar[36] = {0};                   
 
 // Device Control Service SFIDA to Central User Description           
 static uint8 sfidaToCentralCharUserDesp[] = "Sfida to Central\0";  
@@ -585,10 +585,21 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
   
   #if (defined HAL_UART) && (HAL_UART == TRUE)
   {
-    char buf[32];
+    char buf[96];
     sprintf(buf,"UUID: %04X\n",uuid);
     uint8 strLength=strlen(buf);
     HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+    if (uuid!=GATT_CLIENT_CHAR_CFG_UUID){
+      sprintf(buf,"Off:%d Len%d\n",offset, len);
+      strLength=strlen(buf);
+      HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+      char* buf_ptr = buf;
+      for (unsigned char i = 0; i < len; i++){
+         buf_ptr += sprintf(buf_ptr, "%02X", pValue[i]);
+      }sprintf(buf_ptr,"\n");*(buf_ptr + 1) = '\0';
+      strLength=strlen(buf);
+      HalUARTWrite ( HAL_UART_PORT_1, (uint8 *)buf, strLength );
+    }
   }
   #endif  
  
@@ -615,6 +626,10 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
       //Write the value
       if ( status == SUCCESS )
       {           
+        #if (defined HAL_UART) && (HAL_UART == TRUE)
+          HalUARTWrite ( HAL_UART_PORT_1, "OK\n", 3 );
+        #endif
+        
         (void)memcpy(pAttr->pValue, pValue, len);      
 
         if( pAttr->pValue == centralToSfidaChar )

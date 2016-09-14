@@ -941,12 +941,32 @@ static void pgpDeviceControlChangeCB( uint8 paramID )
  */
 static void pgpCertificateChangeCB( uint8 paramID )
 {
-  uint8 newValue[16];
+  uint8 newValue[36];
 
   switch( paramID )
   {
     case CENTRAL_TO_SFIDA_CHAR:
       PgpCertificate_GetParameter( CENTRAL_TO_SFIDA_CHAR, newValue );
+      {
+        uint8 data_test1[]={4,0,0,0};
+        uint8 data_test2[]={5,0,0,0};
+        uint8 data_test3[]={3,0,0,0};
+        
+        
+        if (memcmp(newValue,data_test1,4)==0){
+          uint8 data[]={4,0,1,0}; 
+          PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 4, data); 
+          PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
+        }else if (memcmp(newValue,data_test2,4)==0){
+          uint8 data[]={5,0,0,0}; 
+          PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 4, data); 
+          PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
+        }else if (memcmp(newValue,data_test3,4)==0){
+          uint8 data[]={4,0,2,0}; 
+          PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 4, data); 
+          PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
+        }
+      }
       break;
 
     case SFIDA_COMMANDS_CHAR:
@@ -958,10 +978,8 @@ static void pgpCertificateChangeCB( uint8 paramID )
       break;
     case SFIDA_COMMANDS_NOTIFY_SET:     //GATT_CLIENT_CHAR_CFG_UUID, set notification
       {
-        uint8 data_test[]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};// what does the app want?
-        PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 16, data_test); 
-        
         uint8 data[]={3,0,0,0}; //SFIDA_RESPONSE_CERTIFICATION_NOTIFY
+        PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 4, data); 
         PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
       }
       break;
