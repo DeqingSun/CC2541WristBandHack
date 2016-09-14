@@ -956,6 +956,15 @@ static void pgpCertificateChangeCB( uint8 paramID )
     case SFIDA_TO_CENTRAL_CHAR:
       PgpCertificate_GetParameter( SFIDA_TO_CENTRAL_CHAR, newValue );
       break;
+    case SFIDA_COMMANDS_NOTIFY_SET:     //GATT_CLIENT_CHAR_CFG_UUID, set notification
+      {
+        uint8 data_test[]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};// what does the app want?
+        PgpCertificate_SetParameter(SFIDA_TO_CENTRAL_CHAR, 16, data_test); 
+        
+        uint8 data[]={3,0,0,0}; //SFIDA_RESPONSE_CERTIFICATION_NOTIFY
+        PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
+      }
+      break;
       
     default:
       // should not reach here!

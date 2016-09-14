@@ -639,6 +639,7 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
     case GATT_CLIENT_CHAR_CFG_UUID:
       status = GATTServApp_ProcessCCCWriteReq( connHandle, pAttr, pValue, len,
                                                  offset, GATT_CLIENT_CFG_NOTIFY );
+      if (pValue[0]==GATT_CLIENT_CFG_NOTIFY) notifyApp = SFIDA_COMMANDS_NOTIFY_SET;     //inform App when notification is set
       break;
         
     default:

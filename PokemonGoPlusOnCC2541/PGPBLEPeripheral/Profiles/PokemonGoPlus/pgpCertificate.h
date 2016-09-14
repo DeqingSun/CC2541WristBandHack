@@ -70,6 +70,7 @@ extern "C"
 #define CENTRAL_TO_SFIDA_CHAR                 0  //RW
 #define SFIDA_COMMANDS_CHAR                   1  //RW
 #define SFIDA_TO_CENTRAL_CHAR                 2  //RW
+#define SFIDA_COMMANDS_NOTIFY_SET             3
     
 // UUID for CERTIFICATE_SERVICE service                          
 #define CERTIFICATE_SERV_UUID                  0x8E37    
