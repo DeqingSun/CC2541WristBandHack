@@ -76,7 +76,7 @@
  * CONSTANTS
  */
 
-#define SERVAPP_NUM_ATTR_SUPPORTED        10
+#define SERVAPP_NUM_ATTR_SUPPORTED        11
 
 /*********************************************************************
  * TYPEDEFS
@@ -141,10 +141,13 @@ static uint8 centralToSfidaCharUserDesp[] = "Central to Sfida\0";
 
 //-------------------------------------------------------------------
 // Certificate Service Sfida commands Properties    
-static uint8 sfidaCommandsCharProps = GATT_PROP_READ | GATT_PROP_WRITE;                       
+static uint8 sfidaCommandsCharProps = GATT_PROP_READ | GATT_PROP_WRITE | GATT_PROP_NOTIFY;                       
 
 // Sfida commands Value
-static uint8 sfidaCommandsChar = 0;                    
+static uint8 sfidaCommandsChar = 0;                  
+
+// Sfida commands Notif Configuration.                                       
+static gattCharCfg_t *sfidaCommandsCharConfig;        
 
 // Device Control Service Sfida commands User Description           
 static uint8 sfidaCommandsCharUserDesp[] = "Sfida commands\0";  
@@ -198,7 +201,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   },                                                              
   
   
-    // Central to SFIDA Declaration                                 
+    // Sfida Commands Declaration                                 
   {                                                               
     { ATT_BT_UUID_SIZE, characterUUID },                          
     GATT_PERMIT_READ,                                             
@@ -206,15 +209,23 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     &sfidaCommandsCharProps                                           
   },                                                              
                                                                   
-  // Central to SFIDA Value                                    
+  // Sfida Commands Value                                    
   {                                                               
     { ATT_UUID_SIZE, sfidaCommandsCharUUID },                         
     GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
     0,                                                            
     &sfidaCommandsChar                                                
-  },                                                              
+  },                              
+  
+  // Sfida Commands configuration                               
+  {                                                               
+    { ATT_BT_UUID_SIZE, clientCharCfgUUID },                      
+    GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
+    0,                                                            
+    (uint8 *)&sfidaCommandsCharConfig                                 
+  },   
                                                                   
-  // Central to SFIDA User Description                            
+  // Sfida Commands User Description                            
   {                                                               
     { ATT_BT_UUID_SIZE, charUserDescUUID },                       
     GATT_PERMIT_READ,                                             
@@ -223,7 +234,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   },                                                              
 
     
-  // GATT_PERMIT_READ | GATT_PERMIT_WRITE,  Declaration                                 
+  // SFIDA to Central,  Declaration                                 
   {                                                               
     { ATT_BT_UUID_SIZE, characterUUID },                          
     GATT_PERMIT_READ,                                             
@@ -231,7 +242,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     &sfidaToCentralCharProps                                           
   },                                                              
                                                                   
-  // GATT_PERMIT_READ | GATT_PERMIT_WRITE,  Value                                    
+  // SFIDA to Central,  Value                                    
   {                                                               
     { ATT_UUID_SIZE, sfidaToCentralCharUUID },                         
     GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
@@ -239,7 +250,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     &sfidaToCentralChar                                                
   },                                                              
                                                                   
-  // GATT_PERMIT_READ | GATT_PERMIT_WRITE,  User Description                            
+  // SFIDA to Central,  User Description                            
   {                                                               
     { ATT_BT_UUID_SIZE, charUserDescUUID },                       
     GATT_PERMIT_READ,                                             
@@ -308,7 +319,18 @@ bStatus_t utilExtractUuid16Certificate(gattAttribute_t *pAttr, uint16 *pUuid)
 bStatus_t PgpCertificate_AddService( uint32 services )
 {
   uint8 status;
-
+  
+  // Allocate Client Characteristic Configuration table
+  sfidaCommandsCharConfig = (gattCharCfg_t *)osal_mem_alloc( sizeof(gattCharCfg_t) *
+                                                              linkDBNumConns );
+  if ( sfidaCommandsCharConfig == NULL )
+  {     
+    return ( bleMemAllocError );
+  }
+  
+  // Initialize Client Characteristic Configuration attributes
+  GATTServApp_InitCharCfg( INVALID_CONNHANDLE, sfidaCommandsCharConfig );
+  
   // Register GATT attribute list and CBs with GATT Server App
   status = GATTServApp_RegisterService( pgpCertificateAttrTbl, 
                                           GATT_NUM_ATTRS( pgpCertificateAttrTbl ),
@@ -371,6 +393,10 @@ bStatus_t PgpCertificate_SetParameter( uint8 param, uint8 len, void *value )
     case SFIDA_COMMANDS_CHAR:
       if ( len == sizeof ( uint8 ) ) {
         sfidaCommandsChar = *((uint8*)value);
+        // See if Notification has been enabled                                               
+        GATTServApp_ProcessCharCfg( sfidaCommandsCharConfig, &sfidaCommandsChar, FALSE,               
+                                    pgpCertificateAttrTbl, GATT_NUM_ATTRS( pgpCertificateAttrTbl ),       
+                                    INVALID_TASK_ID, pgpCertificate_ReadAttrCB );           
       }else{
         ret = bleInvalidRange;
       }
