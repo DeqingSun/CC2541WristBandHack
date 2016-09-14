@@ -134,7 +134,8 @@ static CONST gattAttrType_t pgpCertificateService = { ATT_UUID_SIZE, certificate
 static uint8 centralToSfidaCharProps = GATT_PROP_READ | GATT_PROP_WRITE;                       
 
 // Central to SFIDA Value
-static uint8 centralToSfidaChar = 0;                    
+static uint8 centralToSfidaCharLen = 0;
+static uint8 centralToSfidaChar[16] = {0};                    
 
 // Certificate Service Central to SFIDA User Description           
 static uint8 centralToSfidaCharUserDesp[] = "Central to Sfida\0";        
@@ -144,7 +145,8 @@ static uint8 centralToSfidaCharUserDesp[] = "Central to Sfida\0";
 static uint8 sfidaCommandsCharProps = GATT_PROP_READ | GATT_PROP_WRITE | GATT_PROP_NOTIFY;                       
 
 // Sfida commands Value
-static uint8 sfidaCommandsChar = 0;                  
+static uint8 sfidaCommandsCharLen = 0;
+static uint8 sfidaCommandsChar[16] = {0};                   
 
 // Sfida commands Notif Configuration.                                       
 static gattCharCfg_t *sfidaCommandsCharConfig;        
@@ -157,7 +159,8 @@ static uint8 sfidaCommandsCharUserDesp[] = "Sfida commands\0";
 static uint8 sfidaToCentralCharProps = GATT_PROP_READ | GATT_PROP_WRITE;                       
 
 // SFIDA to Central Value
-static uint8 sfidaToCentralChar = 0;                    
+static uint8 sfidaToCentralCharLen = 0;
+static uint8 sfidaToCentralChar[16] = {0};                   
 
 // Device Control Service SFIDA to Central User Description           
 static uint8 sfidaToCentralCharUserDesp[] = "Sfida to Central\0";  
@@ -189,7 +192,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     { ATT_UUID_SIZE, centralToSfidaCharUUID },                         
     GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
     0,                                                            
-    &centralToSfidaChar                                                
+    centralToSfidaChar                                                
   },                                                              
                                                                   
   // Central to SFIDA User Description                            
@@ -214,7 +217,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     { ATT_UUID_SIZE, sfidaCommandsCharUUID },                         
     GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
     0,                                                            
-    &sfidaCommandsChar                                                
+    sfidaCommandsChar                                                
   },                              
   
   // Sfida Commands configuration                               
@@ -247,7 +250,7 @@ static gattAttribute_t pgpCertificateAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
     { ATT_UUID_SIZE, sfidaToCentralCharUUID },                         
     GATT_PERMIT_READ | GATT_PERMIT_WRITE,                         
     0,                                                            
-    &sfidaToCentralChar                                                
+    sfidaToCentralChar                                                
   },                                                              
                                                                   
   // SFIDA to Central,  User Description                            
@@ -384,17 +387,19 @@ bStatus_t PgpCertificate_SetParameter( uint8 param, uint8 len, void *value )
   switch ( param )
   {
     case CENTRAL_TO_SFIDA_CHAR:
-      if ( len == sizeof ( uint8 ) ) {
-        centralToSfidaChar = *((uint8*)value);
+      if ( len <= (sizeof(centralToSfidaChar))) {
+        (void)memcpy(centralToSfidaChar, value, len);
+        centralToSfidaCharLen=len;
       }else{
         ret = bleInvalidRange;
       }
       break;
     case SFIDA_COMMANDS_CHAR:
-      if ( len == sizeof ( uint8 ) ) {
-        sfidaCommandsChar = *((uint8*)value);
+      if ( len <= (sizeof(sfidaCommandsChar))) {
+        (void)memcpy(sfidaCommandsChar, value, len);
+        sfidaCommandsCharLen=len;
         // See if Notification has been enabled                                               
-        GATTServApp_ProcessCharCfg( sfidaCommandsCharConfig, &sfidaCommandsChar, FALSE,               
+        GATTServApp_ProcessCharCfg( sfidaCommandsCharConfig, sfidaCommandsChar, FALSE,               
                                     pgpCertificateAttrTbl, GATT_NUM_ATTRS( pgpCertificateAttrTbl ),       
                                     INVALID_TASK_ID, pgpCertificate_ReadAttrCB );           
       }else{
@@ -402,8 +407,9 @@ bStatus_t PgpCertificate_SetParameter( uint8 param, uint8 len, void *value )
       }
       break;
     case SFIDA_TO_CENTRAL_CHAR:
-      if ( len == sizeof ( uint8 ) ) {
-        sfidaToCentralChar = *((uint8*)value);
+      if ( len <= (sizeof(sfidaToCentralChar))) {
+        (void)memcpy(sfidaToCentralChar, value, len);
+        sfidaToCentralCharLen=len;
       }else{
         ret = bleInvalidRange;
       }
@@ -435,15 +441,15 @@ bStatus_t PgpCertificate_GetParameter( uint8 param, void *value )
   switch ( param )
   {
     case CENTRAL_TO_SFIDA_CHAR:
-      *((uint8*)value) = centralToSfidaChar;
+      (void)memcpy(value, centralToSfidaChar, centralToSfidaCharLen);
       break;
 
     case SFIDA_COMMANDS_CHAR:
-      *((uint8*)value) = sfidaCommandsChar;
+      (void)memcpy(value, sfidaCommandsChar, sfidaCommandsCharLen);
       break;      
 
     case SFIDA_TO_CENTRAL_CHAR:
-      *((uint8*)value) = sfidaToCentralChar;
+      (void)memcpy(value, sfidaToCentralChar, sfidaToCentralCharLen);
       break;  
       
     default:
@@ -517,12 +523,18 @@ static bStatus_t pgpCertificate_ReadAttrCB( uint16 connHandle, gattAttribute_t *
     // characteristics 1 has read permissions                                           
     // characteristic 2 does not have read permissions, but because it                  
     //   can be sent as a notification, it is included here                             
-  case CENTRAL_TO_SFIDA_CHAR_UUID:                                                             
+  case CENTRAL_TO_SFIDA_CHAR_UUID:
+    *pLen = centralToSfidaCharLen;
+    (void) memcpy(pValue, pAttr->pValue, *pLen);  
+    break;
   case SFIDA_COMMANDS_CHAR_UUID:
+    *pLen = sfidaCommandsCharLen;
+    (void) memcpy(pValue, pAttr->pValue, *pLen);  
+    break;
   case SFIDA_TO_CENTRAL_CHAR_UUID:
-    *pLen = 1;                                                                          
-    pValue[0] = *pAttr->pValue;                                                         
-    break;                                                                              
+    *pLen = sfidaToCentralCharLen;
+    (void) memcpy(pValue, pAttr->pValue, *pLen);  
+    break;    
                                                                                         
   default:                                                                              
     // Should never get here! (characteristics 3 and 4 do not have read permissions)    
@@ -590,7 +602,7 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
       // Make sure it's not a blob oper
       if ( offset == 0 )
       {
-        if ( len != 1 )
+        if ( len > sizeof(centralToSfidaChar) )
         {
           status = ATT_ERR_INVALID_VALUE_SIZE;
         }
@@ -602,21 +614,23 @@ static bStatus_t pgpCertificate_WriteAttrCB( uint16 connHandle, gattAttribute_t 
         
       //Write the value
       if ( status == SUCCESS )
-      {
-        uint8 *pCurValue = (uint8 *)pAttr->pValue;        
-        *pCurValue = pValue[0];
+      {           
+        (void)memcpy(pAttr->pValue, pValue, len);      
 
-        if( pAttr->pValue == &centralToSfidaChar )
+        if( pAttr->pValue == centralToSfidaChar )
         {
-          notifyApp = CENTRAL_TO_SFIDA_CHAR;        
+          notifyApp = CENTRAL_TO_SFIDA_CHAR;
+          centralToSfidaCharLen=len;
         }
-        else if( pAttr->pValue == &sfidaCommandsChar )
+        else if( pAttr->pValue == sfidaCommandsChar )
         {
-          notifyApp = SFIDA_COMMANDS_CHAR;           
+          notifyApp = SFIDA_COMMANDS_CHAR;
+          sfidaCommandsCharLen = len;
         }
-        else if( pAttr->pValue == &sfidaToCentralChar )
+        else if( pAttr->pValue == sfidaToCentralChar )
         {
-          notifyApp = SFIDA_TO_CENTRAL_CHAR;           
+          notifyApp = SFIDA_TO_CENTRAL_CHAR;
+          sfidaToCentralCharLen=len;
         }
       }
              

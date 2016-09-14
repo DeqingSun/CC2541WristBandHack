@@ -577,6 +577,11 @@ static void simpleBLEPeripheral_HandleKeys( uint8 shift, uint8 keys )
       if (keyPressDuration<300){
         uint8 buttonValue=0x0F;
         PgpDeviceControl_SetParameter( BUTTON_NOTIF_CHAR, sizeof ( uint8 ), &buttonValue );
+ 
+        uint8 data[]={3,0,0,0};
+        PgpCertificate_SetParameter(SFIDA_COMMANDS_CHAR, 4, data);  
+          
+
       }
       if (keyPressDuration>2500){     //long press
         uint8 current_adv_enabled_status;
@@ -936,20 +941,20 @@ static void pgpDeviceControlChangeCB( uint8 paramID )
  */
 static void pgpCertificateChangeCB( uint8 paramID )
 {
-  uint8 newValue;
+  uint8 newValue[16];
 
   switch( paramID )
   {
     case CENTRAL_TO_SFIDA_CHAR:
-      PgpCertificate_GetParameter( CENTRAL_TO_SFIDA_CHAR, &newValue );
+      PgpCertificate_GetParameter( CENTRAL_TO_SFIDA_CHAR, newValue );
       break;
 
     case SFIDA_COMMANDS_CHAR:
-      PgpCertificate_GetParameter( SFIDA_COMMANDS_CHAR, &newValue );
+      PgpCertificate_GetParameter( SFIDA_COMMANDS_CHAR, newValue );
       break;
 
     case SFIDA_TO_CENTRAL_CHAR:
-      PgpCertificate_GetParameter( SFIDA_TO_CENTRAL_CHAR, &newValue );
+      PgpCertificate_GetParameter( SFIDA_TO_CENTRAL_CHAR, newValue );
       break;
       
     default:
